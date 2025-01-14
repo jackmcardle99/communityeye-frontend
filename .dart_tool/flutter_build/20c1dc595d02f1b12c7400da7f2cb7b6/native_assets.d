@@ -1,0 +1,1 @@
+ /Users/jackm/Development/projects/university/COM668\ -\ Project/communityeye_frontend/.dart_tool/flutter_build/20c1dc595d02f1b12c7400da7f2cb7b6/native_assets.yaml: 
