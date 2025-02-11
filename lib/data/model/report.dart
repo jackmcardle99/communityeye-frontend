@@ -1,5 +1,5 @@
 class Report {
-  final String id; // Changed to String to match ObjectId
+  final String id;
   final int userId;
   final String description;
   final String category;
