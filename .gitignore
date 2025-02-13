@@ -1,1 +1,51 @@
-build/
+# Flutter/Dart specific files
+.dart_tool/
+.build/
+.packages
+.pub/
+flutter_*.png
+*.flutter-plugins
+*.flutter-plugins-dependencies
+*.dart-tools/
+*.metadata
+
+# Generated and compiled files
+*.lock
+*.log
+*.bin
+*.swp
+*.swo
+*.swm
+*.DS_Store
+*.iml
+*.ipr
+*.iws
+
+# IDE-specific files (VS Code, Android Studio, IntelliJ)
+.idea/
+.vscode/
+*.gradle
+.gradle/
+local.properties
+
+# iOS-specific files
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.podspec
+ios/Flutter/App.framework
+ios/Flutter/Generated.xcconfig
+
+# Android-specific files
+android/.cxx/
+android/app/debug.keystore
+android/key.properties
+
+# Web-specific files
+web/.dart_tool/
+web/.firebase/
+firebase.json
+
+# Linux/macOS/Windows-specific files
+linux/.dart_tool/
+macos/.dart_tool/
+windows/.dart_tool/
