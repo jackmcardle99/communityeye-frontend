@@ -1,12 +1,14 @@
+import 'dart:convert';
 import 'package:communityeye_frontend/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/user.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  
+
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
 
@@ -18,6 +20,33 @@ class AuthViewModel extends ChangeNotifier {
     String? token = await getToken();
     _isAuthenticated = token != null;
     notifyListeners();
+  }
+
+  Future<String?> getToken() async {
+    String? token = await _storage.read(key: 'jwt_token');
+    
+    if (token == null) return null;
+
+    try {
+      // Decode JWT without verifying the signature
+      final decodedToken = JWT.decode(token);
+      
+      // Extract expiration time (exp) from token payload
+      final exp = decodedToken.payload['exp'];
+      if (exp != null) {
+        final expiryDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+        if (expiryDate.isBefore(DateTime.now())) {
+          // Token is expired, delete it
+          await deleteToken();
+          return null;
+        }
+      }
+      return token;
+    } catch (e) {
+      // If the token is invalid or cannot be decoded, remove it
+      await deleteToken();
+      return null;
+    }
   }
 
   Future<String?> register(User user) async {
@@ -38,10 +67,6 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
     }
     return token;
-  }
-
-  Future<String?> getToken() async {
-    return await _storage.read(key: 'jwt_token');
   }
 
   Future<void> deleteToken() async {
