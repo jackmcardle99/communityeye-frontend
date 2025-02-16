@@ -30,7 +30,7 @@ class ReportsViewModel extends ChangeNotifier {
           width: 10.0,
           height: 10.0,
           point: LatLng(lat, lon),
-          child: Icon(Icons.location_on, color: Colors.red, size: 40.0),
+          child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
         );
       }).toList();
     } catch (e) {
