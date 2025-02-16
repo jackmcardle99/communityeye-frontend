@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -98,11 +96,11 @@ class AddReportForm extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.camera_alt),
-                    onPressed: () => viewModel.pickImage(ImageSource.camera),
+                    onPressed: () => viewModel.pickImageWithLocation(ImageSource.camera),
                   ),
                   IconButton(
                     icon: const Icon(Icons.photo_library),
-                    onPressed: () => viewModel.pickImage(ImageSource.gallery),
+                    onPressed: () => viewModel.pickImageWithLocation(ImageSource.gallery),
                   ),
                 ],
               ),

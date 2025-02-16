@@ -5,6 +5,8 @@ import 'package:communityeye_frontend/data/services/report_service.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:location/location.dart';
+import 'package:native_exif/native_exif.dart';
 
 class ReportsViewModel extends ChangeNotifier {
   List<Report> _reports = [];
@@ -69,12 +71,48 @@ class ReportsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> pickImage(ImageSource source) async {
+  Future<void> pickImageWithLocation(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
-      _image = File(pickedFile.path);
-      notifyListeners();
+      final location = await _getCurrentLocation();
+      if (location != null) {
+        final exif = await Exif.fromPath(pickedFile.path);
+        await exif.writeAttributes({
+          'GPSLatitude': location.latitude.toString(),
+          'GPSLongitude': location.longitude.toString(),
+        });
+        await exif.close();
+        _image = File(pickedFile.path);
+        notifyListeners();
+      } else {
+        _errorMessage = "Location access denied or unavailable.";
+        notifyListeners();
+      }
     }
+  }
+
+  Future<LocationData?> _getCurrentLocation() async {
+    final location = Location();
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return null;
+      }
+    }
+
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return null;
+      }
+    }
+
+    return await location.getLocation();
   }
 
   bool isFormValid() {
