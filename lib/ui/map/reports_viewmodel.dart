@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/report.dart';
 import 'package:communityeye_frontend/data/services/report_service.dart';
-import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ReportsViewModel extends ChangeNotifier {
   List<Report> _reports = [];
@@ -16,13 +17,13 @@ class ReportsViewModel extends ChangeNotifier {
   String? _selectedCategory;
   File? _image;
   final List<String> _categories = ['Category 1', 'Category 2', 'Category 3'];
+  final ImagePicker _picker = ImagePicker();
+  final TextEditingController descriptionController = TextEditingController();
 
   List<Report> get reports => _reports;
   List<Marker> get markers => _markers;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
-
-  // Form-related getters
   String? get description => _description;
   String? get selectedCategory => _selectedCategory;
   File? get image => _image;
@@ -53,7 +54,6 @@ class ReportsViewModel extends ChangeNotifier {
     }
   }
 
-  // Form-related methods
   void setDescription(String value) {
     _description = value;
     notifyListeners();
@@ -69,6 +69,14 @@ class ReportsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> pickImage(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(source: source);
+    if (pickedFile != null) {
+      _image = File(pickedFile.path);
+      notifyListeners();
+    }
+  }
+
   bool isFormValid() {
     return _description != null &&
         _description!.isNotEmpty &&
@@ -80,7 +88,6 @@ class ReportsViewModel extends ChangeNotifier {
     if (!isFormValid()) return;
 
     try {
-      // Submit the report using the service
       String reportUrl = await ReportService().createReport(
         _description!,
         _selectedCategory!,
@@ -91,12 +98,8 @@ class ReportsViewModel extends ChangeNotifier {
       _description = '';
       _selectedCategory = null;
       _image = null;
+      descriptionController.clear();
       notifyListeners();
-
-      // Optionally, you can add the new report to the list
-      // _reports.add(newReport);
-      // notifyListeners();
-
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();

@@ -61,23 +61,8 @@ class ReportsScreen extends StatelessWidget {
   }
 }
 
-class AddReportForm extends StatefulWidget {
+class AddReportForm extends StatelessWidget {
   const AddReportForm({super.key});
-
-  @override
-  _AddReportFormState createState() => _AddReportFormState();
-}
-
-class _AddReportFormState extends State<AddReportForm> {
-  final ImagePicker _picker = ImagePicker();
-  final TextEditingController _descriptionController = TextEditingController();
-
-  Future<void> _pickImage(ImageSource source, ReportsViewModel viewModel) async {
-    final pickedFile = await _picker.pickImage(source: source);
-    if (pickedFile != null) {
-      viewModel.setImage(File(pickedFile.path));
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +77,7 @@ class _AddReportFormState extends State<AddReportForm> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               TextField(
-                controller: _descriptionController,
+                controller: viewModel.descriptionController,
                 onChanged: viewModel.setDescription,
                 maxLength: 300,
                 decoration: const InputDecoration(labelText: 'Description'),
@@ -113,11 +98,11 @@ class _AddReportFormState extends State<AddReportForm> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.camera_alt),
-                    onPressed: () => _pickImage(ImageSource.camera, viewModel),
+                    onPressed: () => viewModel.pickImage(ImageSource.camera),
                   ),
                   IconButton(
                     icon: const Icon(Icons.photo_library),
-                    onPressed: () => _pickImage(ImageSource.gallery, viewModel),
+                    onPressed: () => viewModel.pickImage(ImageSource.gallery),
                   ),
                 ],
               ),
