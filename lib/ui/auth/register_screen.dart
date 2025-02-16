@@ -2,6 +2,7 @@ import 'package:communityeye_frontend/ui/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/user.dart';
 import 'package:communityeye_frontend/ui/auth/auth_presenter.dart';
+import 'package:communityeye_frontend/ui/auth/auth_presenter.dart';
 
 
 class RegisterScreen extends StatelessWidget {
