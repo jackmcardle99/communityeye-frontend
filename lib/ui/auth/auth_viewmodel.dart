@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:communityeye_frontend/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/user.dart';
@@ -45,6 +44,20 @@ class AuthViewModel extends ChangeNotifier {
     } catch (e) {
       // If the token is invalid or cannot be decoded, remove it
       await deleteToken();
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getTokenData() async {
+    String? token = await getToken();
+    if (token == null) return null;
+
+    try {
+      // Decode JWT without verifying the signature
+      final decodedToken = JWT.decode(token);
+      return decodedToken.payload;
+    } catch (e) {
+      // If the token is invalid or cannot be decoded, return null
       return null;
     }
   }

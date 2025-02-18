@@ -1,3 +1,4 @@
+import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -12,7 +13,7 @@ class ReportsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ChangeNotifierProvider(
-        create: (context) => ReportsViewModel()..fetchReports(),
+        create: (context) => ReportsViewModel(AuthViewModel())..fetchReports(), // have to inject authview
         child: Consumer<ReportsViewModel>(
           builder: (context, viewModel, child) {
             if (viewModel.isLoading) {

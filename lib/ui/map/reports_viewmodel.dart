@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/report.dart';
 import 'package:communityeye_frontend/data/services/report_service.dart';
@@ -8,7 +9,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 import 'package:native_exif/native_exif.dart';
 
+
 class ReportsViewModel extends ChangeNotifier {
+  final AuthViewModel authViewModel;
+
   List<Report> _reports = [];
   List<Marker> _markers = [];
   bool _isLoading = true;
@@ -30,6 +34,8 @@ class ReportsViewModel extends ChangeNotifier {
   String? get selectedCategory => _selectedCategory;
   File? get image => _image;
   List<String> get categories => _categories;
+
+  ReportsViewModel(this.authViewModel);
 
   Future<void> fetchReports() async {
     _isLoading = true;
@@ -74,20 +80,27 @@ class ReportsViewModel extends ChangeNotifier {
   Future<void> pickImageWithLocation(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
-      final location = await _getCurrentLocation();
-      if (location != null) {
-        final exif = await Exif.fromPath(pickedFile.path);
-        await exif.writeAttributes({
-          'GPSLatitude': location.latitude.toString(),
-          'GPSLongitude': location.longitude.toString(),
-        });
-        await exif.close();
-        _image = File(pickedFile.path);
-        notifyListeners();
-      } else {
-        _errorMessage = "Location access denied or unavailable.";
-        notifyListeners();
+      _image = File(pickedFile.path); // Set image immediately
+
+      if (source == ImageSource.camera) {
+        final location = await _getCurrentLocation();
+        if (location != null) {
+          try {
+            final exif = await Exif.fromPath(pickedFile.path);
+            await exif.writeAttributes({
+              'GPSLatitude': location.latitude.toString(),
+              'GPSLongitude': location.longitude.toString(),
+            });
+            await exif.close();
+          } catch (e) {
+            _errorMessage = "Failed to write location to image.";
+          }
+        } else {
+          _errorMessage = "Location access denied or unavailable.";
+        }
       }
+
+      notifyListeners(); // Ensure UI updates regardless
     }
   }
 
@@ -122,25 +135,68 @@ class ReportsViewModel extends ChangeNotifier {
         _image != null;
   }
 
+  // Future<void> submitReport() async {
+  //   if (!isFormValid()) return;
+
+  //   final tokenData = authViewModel.getTokenData();
+  //   if (tokenData == null || tokenData['user_id'] == null) {
+  //     _errorMessage = "User ID not found in token.";
+  //     notifyListeners();
+  //     return;
+  //   }
+
+  //   final userId = tokenData['user_id'];
+
+  //   try {
+  //     String reportUrl = await ReportService().createReport(
+  //       _description!,
+  //       _selectedCategory!,
+  //       _image!,
+  //       userId: userId, // Pass the user ID to the report service
+  //     );
+
+  //     // Clear form fields after successful submission
+  //     _description = '';
+  //     _selectedCategory = null;
+  //     _image = null;
+  //     descriptionController.clear();
+  //     notifyListeners();
+  //   } catch (e) {
+  //     _errorMessage = e.toString();
+  //     notifyListeners();
+  //   }
+  // }
   Future<void> submitReport() async {
-    if (!isFormValid()) return;
+     if (!isFormValid()) return;
 
-    try {
-      String reportUrl = await ReportService().createReport(
-        _description!,
-        _selectedCategory!,
-        _image!,
-      );
+  // Await the result of getTokenData()
+  // final tokenData = await authViewModel.getTokenData();
+  // if (tokenData == null || tokenData['id'] == null) {
+  //   _errorMessage = "User ID not found in token.";
+  //   notifyListeners();
+  //   return;
+  // }
 
-      // Clear form fields after successful submission
-      _description = '';
-      _selectedCategory = null;
-      _image = null;
-      descriptionController.clear();
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      notifyListeners();
-    }
+  // final userId = tokenData['id'];
+
+  try {
+    String reportUrl = await ReportService().createReport(
+      _description!,
+      _selectedCategory!,
+      _image!,
+      // userId: userId, // Pass the user ID to the report service
+    );
+    // print(userId);
+    // Clear form fields after successful submission
+    _description = '';
+    _selectedCategory = null;
+    _image = null;
+    descriptionController.clear();
+    notifyListeners();
+  } catch (e) {
+    _errorMessage = e.toString();
+    notifyListeners();
   }
+}
+
 }

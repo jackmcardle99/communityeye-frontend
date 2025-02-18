@@ -17,9 +17,12 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AuthViewModel()),
-        ChangeNotifierProvider(create: (context) => ReportsViewModel()),
+        ChangeNotifierProxyProvider<AuthViewModel, ReportsViewModel>(
+          create: (context) => ReportsViewModel(Provider.of<AuthViewModel>(context, listen: false)),
+          update: (context, authViewModel, reportsViewModel) => ReportsViewModel(authViewModel),
+        ),
       ],
-      child: MaterialApp(
+      child: const MaterialApp(
         home: AuthWrapper(),
       ),
     );
@@ -27,12 +30,14 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (context, viewModel, child) {
         if (viewModel.isAuthenticated) {
-          return HomeScreen(); // Navigate to HomeScreen if token exists
+          return const HomeScreen(); // Navigate to HomeScreen if token exists
         } else {
           return const AuthScreen(); // Show AuthScreen if no token
         }

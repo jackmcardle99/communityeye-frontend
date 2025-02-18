@@ -5,7 +5,7 @@ import 'package:communityeye_frontend/ui/auth/auth_presenter.dart';
 class LoginScreen extends StatelessWidget {
   final AuthPresenter presenter;
 
-  LoginScreen({required this.presenter});
+  LoginScreen({super.key, required this.presenter});
 
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -14,7 +14,7 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -23,7 +23,7 @@ class LoginScreen extends StatelessWidget {
             children: [
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email';
@@ -33,7 +33,7 @@ class LoginScreen extends StatelessWidget {
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -42,7 +42,7 @@ class LoginScreen extends StatelessWidget {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
@@ -54,17 +54,17 @@ class LoginScreen extends StatelessWidget {
                       // Navigate to ReportsScreen on successful login
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()),
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
                       );
                     } else {
                       // Handle login error
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Login failed')),
+                        const SnackBar(content: Text('Login failed')),
                       );
                     }
                   }
                 },
-                child: Text('Login'),
+                child: const Text('Login'),
               ),
             ],
           ),

@@ -4,6 +4,7 @@ import 'package:communityeye_frontend/data/model/user.dart';
 
 class AuthService {
   final String baseUrl = 'http://192.168.0.143:5001/api/v1/';
+  // final String baseUrl = 'http://localhost:5001/api/v1/';
 
   Future<String?> register(User user) async {
     try {
