@@ -2,13 +2,12 @@ import 'package:communityeye_frontend/ui/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/user.dart';
 import 'package:communityeye_frontend/ui/auth/auth_presenter.dart';
-import 'package:communityeye_frontend/ui/auth/auth_presenter.dart';
 
 
 class RegisterScreen extends StatelessWidget {
   final AuthPresenter presenter;
 
-  RegisterScreen({required this.presenter});
+  RegisterScreen({super.key, required this.presenter});
 
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
@@ -21,7 +20,7 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register')),
+      appBar: AppBar(title: const Text('Register')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -30,7 +29,7 @@ class RegisterScreen extends StatelessWidget {
             children: [
               TextFormField(
                 controller: _firstNameController,
-                decoration: InputDecoration(labelText: 'First Name'),
+                decoration: const InputDecoration(labelText: 'First Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your first name';
@@ -40,7 +39,7 @@ class RegisterScreen extends StatelessWidget {
               ),
               TextFormField(
                 controller: _lastNameController,
-                decoration: InputDecoration(labelText: 'Last Name'),
+                decoration: const InputDecoration(labelText: 'Last Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your last name';
@@ -50,7 +49,7 @@ class RegisterScreen extends StatelessWidget {
               ),
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email';
@@ -60,7 +59,7 @@ class RegisterScreen extends StatelessWidget {
               ),
               TextFormField(
                 controller: _mobileNumberController,
-                decoration: InputDecoration(labelText: 'Mobile Number'),
+                decoration: const InputDecoration(labelText: 'Mobile Number'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your mobile number';
@@ -70,7 +69,7 @@ class RegisterScreen extends StatelessWidget {
               ),
               TextFormField(
                 controller: _cityController,
-                decoration: InputDecoration(labelText: 'City'),
+                decoration: const InputDecoration(labelText: 'City'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your city';
@@ -80,7 +79,7 @@ class RegisterScreen extends StatelessWidget {
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -89,7 +88,7 @@ class RegisterScreen extends StatelessWidget {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
@@ -106,17 +105,17 @@ class RegisterScreen extends StatelessWidget {
                       // Navigate to ReportsScreen on successful registration
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()),
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
                       );
                     } else {
                       // Handle registration error
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Registration failed')),
+                        const SnackBar(content: Text('Registration failed')),
                       );
                     }
                   }
                 },
-                child: Text('Register'),
+                child: const Text('Register'),
               ),
             ],
           ),

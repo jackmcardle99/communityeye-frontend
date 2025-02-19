@@ -4,6 +4,8 @@ import 'package:communityeye_frontend/ui/reports/myreports_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -13,8 +15,8 @@ class _MainScreenState extends State<HomeScreen> {
 
   static final List<Widget> _screens = <Widget>[
     const ReportsScreen(),
-    MyReportsScreen(),
-    ProfileScreen(),
+    const MyReportsScreen(),
+    const ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {

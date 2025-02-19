@@ -1,65 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:communityeye_frontend/data/model/user.dart';
 import 'package:communityeye_frontend/ui/auth/auth_presenter.dart';
+import 'package:communityeye_frontend/ui/auth/login_screen.dart';
+import 'package:communityeye_frontend/ui/auth/register_screen.dart';
+import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class AuthScreen extends StatelessWidget {
-  final AuthPresenter presenter;
-
-  AuthScreen({required this.presenter});
+  const AuthScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
+    final viewModel = Provider.of<AuthViewModel>(context);
+    final presenter = AuthPresenter(viewModel);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Login/Register')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(title: const Text('Authentication')),
+      body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                final token = await presenter.loginUser(
-                  emailController.text,
-                  passwordController.text,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen(presenter: presenter)),
                 );
-                if (token != null) {
-                  // Handle successful login
-                } else {
-                  // Handle login error
-                }
               },
-              child: Text('Login'),
+              child: const Text('Login'),
             ),
             ElevatedButton(
-              onPressed: () async {
-                final user = User(
-                  firstName: 'John',
-                  lastName: 'Doe',
-                  email: emailController.text,
-                  mobileNumber: '1234567890',
-                  city: 'Sample City',
-                  password: passwordController.text,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterScreen(presenter: presenter)),
                 );
-                final token = await presenter.registerUser(user);
-                if (token != null) {
-                  // Handle successful registration
-                } else {
-                  // Handle registration error
-                }
               },
-              child: Text('Register'),
+              child: const Text('Register'),
             ),
           ],
         ),

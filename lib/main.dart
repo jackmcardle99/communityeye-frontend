@@ -1,71 +1,9 @@
-// import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import 'package:communityeye_frontend/ui/auth/auth_presenter.dart';
-// import 'package:communityeye_frontend/ui/auth/login_screen.dart';
-// import 'package:communityeye_frontend/ui/auth/register_screen.dart';
-
-
-// void main() {
-//   runApp(MyApp());
-// }
-
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return ChangeNotifierProvider(
-//       create: (context) => AuthViewModel(),
-//       child: MaterialApp(
-//         home: AuthScreen(),
-//       ),
-//     );
-//   }
-// }
-
-// class AuthScreen extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     final viewModel = Provider.of<AuthViewModel>(context);
-//     final presenter = AuthPresenter(viewModel);
-
-//     return Scaffold(
-//       appBar: AppBar(title: Text('Authentication')),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             ElevatedButton(
-//               onPressed: () {
-//                 Navigator.push(
-//                   context,
-//                   MaterialPageRoute(builder: (context) => LoginScreen(presenter: presenter)),
-//                 );
-//               },
-//               child: Text('Login'),
-//             ),
-//             ElevatedButton(
-//               onPressed: () {
-//                 Navigator.push(
-//                   context,
-//                   MaterialPageRoute(builder: (context) => RegisterScreen(presenter: presenter)),
-//                 );
-//               },
-//               child: Text('Register'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
 import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
+import 'package:communityeye_frontend/ui/home/home_screen.dart';
 import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:communityeye_frontend/ui/auth/auth_presenter.dart';
-import 'package:communityeye_frontend/ui/auth/login_screen.dart';
-import 'package:communityeye_frontend/ui/auth/register_screen.dart';
-
+import 'package:communityeye_frontend/ui/auth/auth_screen.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -78,51 +16,32 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => AuthViewModel()), // Auth provider
-        ChangeNotifierProvider(create: (context) => ReportsViewModel()), // Reports provider
+        ChangeNotifierProvider(create: (context) => AuthViewModel()),
+        ChangeNotifierProxyProvider<AuthViewModel, ReportsViewModel>(
+          create: (context) => ReportsViewModel(Provider.of<AuthViewModel>(context, listen: false)),
+          update: (context, authViewModel, reportsViewModel) => ReportsViewModel(authViewModel),
+        ),
       ],
       child: const MaterialApp(
-        home: AuthScreen(),
+        home: AuthWrapper(),
       ),
     );
   }
 }
 
-class AuthScreen extends StatelessWidget {
-  const AuthScreen({super.key});
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<AuthViewModel>(context);
-    final presenter = AuthPresenter(viewModel);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Authentication')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen(presenter: presenter)),
-                );
-              },
-              child: const Text('Login'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen(presenter: presenter)),
-                );
-              },
-              child: const Text('Register'),
-            ),
-          ],
-        ),
-      ),
+    return Consumer<AuthViewModel>(
+      builder: (context, viewModel, child) {
+        if (viewModel.isAuthenticated) {
+          return const HomeScreen(); // Navigate to HomeScreen if token exists
+        } else {
+          return const AuthScreen(); // Show AuthScreen if no token
+        }
+      },
     );
   }
 }
