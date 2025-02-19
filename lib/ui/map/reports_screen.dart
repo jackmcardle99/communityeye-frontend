@@ -5,15 +5,48 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
+
+  void _onMarkerTapped(BuildContext context, Marker marker) {
+    final viewModel = Provider.of<ReportsViewModel>(context, listen: false);
+    final report = viewModel.reports.firstWhere((report) {
+      final lat = report.geolocation.geometry.coordinates[0];
+      final lon = report.geolocation.geometry.coordinates[1];
+      return marker.point.latitude == lat && marker.point.longitude == lon;
+    });
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          height: 200,
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [              
+              Image.network(report.image.url, height: 150, width: double.infinity, fit: BoxFit.cover),
+              Text('Description: ${report.description}'),
+              Text('Category: ${report.category}'),
+              Text('Authority: ${report.authority}'),              
+              Text(
+                 'Created at: ${DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000))}'
+              ),
+              Text('Resolved: ${report.resolved}')
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: ChangeNotifierProvider(
-        create: (context) => ReportsViewModel(AuthViewModel())..fetchReports(), // have to inject authview
+        create: (context) => ReportsViewModel(AuthViewModel())..fetchReports(),
         child: Consumer<ReportsViewModel>(
           builder: (context, viewModel, child) {
             if (viewModel.isLoading) {
@@ -32,7 +65,17 @@ class ReportsScreen extends StatelessWidget {
                     userAgentPackageName: 'com.example.app',
                   ),
                   MarkerLayer(
-                    markers: viewModel.markers,
+                    markers: viewModel.markers.map((marker) {
+                      return Marker(
+                        width: 40.0,
+                        height: 40.0,
+                        point: marker.point,
+                        child: GestureDetector(
+                          onTap: () => _onMarkerTapped(context, marker),
+                          child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ],
               );
@@ -42,7 +85,6 @@ class ReportsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Wrap bottom sheet with the provider
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -113,7 +155,7 @@ class AddReportForm extends StatelessWidget {
                     ? () async {
                         await viewModel.submitReport();
                         if (viewModel.isSubmissionSuccessful) {
-                          Navigator.of(context).pop(); // Close the bottom sheet after successful submission
+                          Navigator.of(context).pop();
                         }
                       }
                     : null,

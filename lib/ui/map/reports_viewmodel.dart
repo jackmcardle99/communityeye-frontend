@@ -8,7 +8,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 import 'package:native_exif/native_exif.dart';
-import 'package:http/http.dart';
 
 class ReportsViewModel extends ChangeNotifier {
   final AuthViewModel authViewModel;
@@ -23,7 +22,21 @@ class ReportsViewModel extends ChangeNotifier {
   String? _description;
   String? _selectedCategory;
   File? _image;
-  final List<String> _categories = ['Category 1', 'Category 2', 'Category 3'];
+  final List<String> _categories = [
+  'Abandoned vehicle',
+  'Crash barrier and guard-rail',
+  'Dangerous structure or vacant building',
+  'Ironworks',
+  'Missed bin collection',
+  'Obstructions',
+  'Pavement issue',
+  'Potholes',
+  'Signs or road markings',
+  'Spillages',
+  'Street cleaning issue',
+  'Street lighting fault',
+  'Traffic lights'
+  ];
   final ImagePicker _picker = ImagePicker();
   final TextEditingController descriptionController = TextEditingController();
 
