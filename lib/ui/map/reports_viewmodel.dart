@@ -8,7 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 import 'package:native_exif/native_exif.dart';
-
+import 'package:http/http.dart';
 
 class ReportsViewModel extends ChangeNotifier {
   final AuthViewModel authViewModel;
@@ -16,6 +16,7 @@ class ReportsViewModel extends ChangeNotifier {
   List<Report> _reports = [];
   List<Marker> _markers = [];
   bool _isLoading = true;
+  bool _isSubmissionSuccessful = false;
   String _errorMessage = '';
 
   // Form-related state
@@ -29,6 +30,7 @@ class ReportsViewModel extends ChangeNotifier {
   List<Report> get reports => _reports;
   List<Marker> get markers => _markers;
   bool get isLoading => _isLoading;
+  bool get isSubmissionSuccessful => _isSubmissionSuccessful;
   String get errorMessage => _errorMessage;
   String? get description => _description;
   String? get selectedCategory => _selectedCategory;
@@ -160,12 +162,13 @@ class ReportsViewModel extends ChangeNotifier {
     _description = '';
     _selectedCategory = null;
     _image = null;
+    _errorMessage = '';
     descriptionController.clear();
+    _isSubmissionSuccessful = true;
     notifyListeners();
   } catch (e) {
-    _errorMessage = e.toString();
-    notifyListeners();
-  }
-}
-
+        _errorMessage = e.toString();
+      }
+      notifyListeners();
+    }
 }

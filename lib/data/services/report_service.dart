@@ -33,7 +33,15 @@ class ReportService {
       var jsonResponse = json.decode(responseBody);
       return jsonResponse['url'];
     } else {
-      throw Exception('Failed to create report');
-    }
+      // Handle specific error cases based on the backend response
+      if (response.statusCode == 422) {        
+        throw const HttpException('Missing fields or no image was provided.');        
+      } else if (response.statusCode == 400) {
+          throw const HttpException("Image location could not be determined or is outside Northern Ireland.");
+        }
+      }
+      // Default error handling
+      throw const HttpException('Failed to create report. Please try again later.');
   }
+  
 }

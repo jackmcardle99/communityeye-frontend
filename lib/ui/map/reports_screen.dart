@@ -110,9 +110,11 @@ class AddReportForm extends StatelessWidget {
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: viewModel.isFormValid()
-                    ? () {
-                        viewModel.submitReport();
-                        Navigator.of(context).pop(); // Close the bottom sheet after submission
+                    ? () async {
+                        await viewModel.submitReport();
+                        if (viewModel.isSubmissionSuccessful) {
+                          Navigator.of(context).pop(); // Close the bottom sheet after successful submission
+                        }
                       }
                     : null,
                 child: const Text('Submit'),
