@@ -18,11 +18,12 @@ class ReportService {
     }
   }
 
-  Future<String> createReport(String description, String category, File image, /*{required userId}*/) async {
+  // I don't know why i need to use {required userId}, but it breaks without ¯\_(ツ)_/¯
+  Future<String> createReport(String description, String category, File image, {required userId}) async {
     var request = http.MultipartRequest('POST', Uri.parse('${baseUrl}reports'));
     request.fields['description'] = description;
     request.fields['category'] = category;
-    // request.fields['userID'] = userId;
+    request.fields['userID'] = userId.toString();
     request.files.add(await http.MultipartFile.fromPath('image', image.path));
 
     var response = await request.send();

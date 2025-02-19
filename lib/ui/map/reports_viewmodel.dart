@@ -135,58 +135,27 @@ class ReportsViewModel extends ChangeNotifier {
         _image != null;
   }
 
-  // Future<void> submitReport() async {
-  //   if (!isFormValid()) return;
 
-  //   final tokenData = authViewModel.getTokenData();
-  //   if (tokenData == null || tokenData['user_id'] == null) {
-  //     _errorMessage = "User ID not found in token.";
-  //     notifyListeners();
-  //     return;
-  //   }
-
-  //   final userId = tokenData['user_id'];
-
-  //   try {
-  //     String reportUrl = await ReportService().createReport(
-  //       _description!,
-  //       _selectedCategory!,
-  //       _image!,
-  //       userId: userId, // Pass the user ID to the report service
-  //     );
-
-  //     // Clear form fields after successful submission
-  //     _description = '';
-  //     _selectedCategory = null;
-  //     _image = null;
-  //     descriptionController.clear();
-  //     notifyListeners();
-  //   } catch (e) {
-  //     _errorMessage = e.toString();
-  //     notifyListeners();
-  //   }
-  // }
   Future<void> submitReport() async {
      if (!isFormValid()) return;
 
   // Await the result of getTokenData()
-  // final tokenData = await authViewModel.getTokenData();
-  // if (tokenData == null || tokenData['id'] == null) {
-  //   _errorMessage = "User ID not found in token.";
-  //   notifyListeners();
-  //   return;
-  // }
+  final tokenData = await authViewModel.getTokenData();
+  if (tokenData == null || tokenData['id'] == null) {
+    _errorMessage = "User ID not found in token.";
+    notifyListeners();
+    return;
+  }
 
-  // final userId = tokenData['id'];
+  final userId = tokenData['id'];
 
   try {
     String reportUrl = await ReportService().createReport(
       _description!,
       _selectedCategory!,
       _image!,
-      // userId: userId, // Pass the user ID to the report service
+      userId: userId, // Pass the user ID to the report service
     );
-    // print(userId);
     // Clear form fields after successful submission
     _description = '';
     _selectedCategory = null;
