@@ -56,20 +56,23 @@ class AuthService {
   }
 
   Future<User?> fetchUser(String userId) async {
+  
   String? token = await AuthViewModel().getToken(); // Fetch token from ViewModel
   if (token == null) return null;
 
   try {
     final response = await http.get(
-      Uri.parse('${baseUrl}users/$userId'),
+      // Uri.parse('${baseUrl}users/$userId'),
+      Uri.parse('${baseUrl}users/${int.parse(userId)}'),
       headers: {
         'Content-Type': 'application/json',
         'x-access-token': token,
       },
     );
-
-    if (response.statusCode == 200) {
+    
+    if (response.statusCode == 200) {      
       final data = jsonDecode(response.body);
+      print(data);
       return User.fromJson(data);
     } else {
       print('Fetch user failed with status: ${response.statusCode}');

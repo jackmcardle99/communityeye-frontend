@@ -10,6 +10,12 @@ class AuthViewModel extends ChangeNotifier {
 
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
+  User? _currentUser;
+  User? get currentUser => _currentUser;
+  bool _isLoading = false; // Add this flag
+  bool get isLoading => _isLoading; // Expose it for the UI
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
   AuthViewModel() {
     _checkToken();
@@ -88,13 +94,75 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
- Future<User?> fetchCurrentUser() async {
-  Map<String, dynamic>? tokenData = await getTokenData();
-  if (tokenData == null || !tokenData.containsKey('user_id')) return null;
+// Future<void> fetchCurrentUser() async {
+//     Map<String, dynamic>? tokenData = await getTokenData();
+//     if (tokenData == null || !tokenData.containsKey('user_id')) return;
 
-  String userId = tokenData['user_id'].toString();
-  return _authService.fetchUser(userId);
-}
+//     String userId = tokenData['user_id'].toString();
+//     _currentUser = await _authService.fetchUser(userId);
+//     notifyListeners();
+//   }
 
+
+// Future<void> fetchCurrentUser() async {
+//   Map<String, dynamic>? tokenData = await getTokenData();
+
+//   if (tokenData == null) {
+//     print("Token data is null. User is not authenticated.");
+//     return;
+//   }
+
+//   if (!tokenData.containsKey('id')) {
+//     print("Token does not contain user_id.");
+//     return;
+//   }
+
+//   String userId = tokenData['id'].toString();
+//   print("Fetching user with ID: $userId");
+
+//   _currentUser = await _authService.fetchUser(userId);
+  
+//   if (_currentUser == null) {
+//     print("Failed to fetch user. Keeping _currentUser as null.");
+//   } else {
+//     print("Successfully fetched user: ${_currentUser!.firstName}");
+//   }
+
+//   notifyListeners();
+// }
+
+Future<void> fetchCurrentUser() async {
+    if (_currentUser != null) return; // Prevent re-fetching if user is already fetched
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    Map<String, dynamic>? tokenData = await getTokenData();
+
+    if (tokenData == null) {
+      _errorMessage = 'No valid token found.';
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    if (!tokenData.containsKey('id')) {
+      _errorMessage = 'Invalid token format.';
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    String userId = tokenData['id'].toString();
+    _currentUser = await _authService.fetchUser(userId);
+
+    if (_currentUser == null) {
+      _errorMessage = 'Failed to fetch user data.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
 
 }
