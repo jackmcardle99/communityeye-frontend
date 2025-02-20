@@ -5,70 +5,27 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 class AuthViewModel extends ChangeNotifier {
+  
   final AuthService _authService = AuthService();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
   bool _isAuthenticated = false;
-  bool get isAuthenticated => _isAuthenticated;
   User? _currentUser;
-  User? get currentUser => _currentUser;
-  bool _isLoading = false; // Add this flag
-  bool get isLoading => _isLoading; // Expose it for the UI
+  bool _isLoading = false; 
   String? _errorMessage;
+  
+  // Getters
+  bool get isAuthenticated => _isAuthenticated;
+  User? get currentUser => _currentUser;
+  bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
   AuthViewModel() {
     _checkToken();
   }
 
-  Future<void> _checkToken() async {
-    String? token = await getToken();
-    _isAuthenticated = token != null;
-    notifyListeners();
-  }
+  ///////////////////////////// AUTH METHODS  /////////////////////////////
 
-  Future<String?> getToken() async {
-    String? token = await _storage.read(key: 'jwt_token');
-    
-    if (token == null) return null;
-
-    try {
-      // Decode JWT without verifying the signature
-      final decodedToken = JWT.decode(token);
-      
-      // Extract expiration time (exp) from token payload
-      final exp = decodedToken.payload['exp'];
-      if (exp != null) {
-        final expiryDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
-        if (expiryDate.isBefore(DateTime.now())) {
-          // Token is expired, delete it
-          await deleteToken();
-          return null;
-        }
-      }
-      return token;
-    } catch (e) {
-      // If the token is invalid or cannot be decoded, remove it
-      await deleteToken();
-      return null;
-    }
-  }
-
-  Future<Map<String, dynamic>?> getTokenData() async {
-    String? token = await getToken();
-    if (token == null) return null;
-
-    try {
-      // Decode JWT without verifying the signature
-      final decodedToken = JWT.decode(token);
-      return decodedToken.payload;
-    } catch (e) {
-      // If the token is invalid or cannot be decoded, return null
-      return null;
-    }
-  }
-
-  Future<String?> register(User user) async {
+Future<String?> register(User user) async {
     String? token = await _authService.register(user);
     if (token != null) {
       await _storage.write(key: 'jwt_token', value: token);
@@ -78,6 +35,7 @@ class AuthViewModel extends ChangeNotifier {
     return token;
   }
 
+
   Future<String?> login(String email, String password) async {
     String? token = await _authService.login(email, password);
     if (token != null) {
@@ -86,6 +44,119 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
     }
     return token;
+  }
+
+    Future<void> deleteUserAccount() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    String? token = await getToken();
+    if (token == null) {
+      _errorMessage = 'No valid token found.';
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    final deleteError = await _authService.deleteUserAccount(token);
+
+    if (deleteError == null) {
+      await deleteToken();
+      _isLoading = false;
+      notifyListeners();
+    } else {
+      _errorMessage = deleteError;
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
+///////////////////////////// USER METHODS  /////////////////////////////
+
+Future<void> fetchCurrentUser() async {
+    if (_currentUser != null) return; 
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    Map<String, dynamic>? tokenData = await getTokenData();
+
+    if (tokenData == null) {
+      _errorMessage = 'No valid token found.';
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    if (!tokenData.containsKey('id')) {
+      _errorMessage = 'Invalid token format.';
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    String userId = tokenData['id'].toString();
+    _currentUser = await _authService.fetchUser(userId);
+
+    if (_currentUser == null) {
+      _errorMessage = 'Failed to fetch user data.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+///////////////////////////// TOKEN METHODS  /////////////////////////////
+
+  Future<void> _checkToken() async {
+    String? token = await getToken();
+    _isAuthenticated = token != null;
+    print(token);
+    notifyListeners();
+  }
+
+  Future<String?> getToken() async {
+    String? token = await _storage.read(key: 'jwt_token');
+    
+    if (token == null) {
+      _isAuthenticated = false; 
+      notifyListeners();
+      return null;
+    }
+
+    try {
+      final decodedToken = JWT.decode(token);
+      final exp = decodedToken.payload['exp'];
+      if (exp != null) {
+        final expiryDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+        if (expiryDate.isBefore(DateTime.now())) {
+          await deleteToken(); 
+          return null;
+        }
+      }
+      return token;
+    } catch (e) {
+      await deleteToken(); 
+      return null;
+    }
+  }
+  
+
+  Future<Map<String, dynamic>?> getTokenData() async {
+    String? token = await getToken();
+    if (token == null) return null;
+
+    try {
+      
+      final decodedToken = JWT.decode(token);
+      return decodedToken.payload;
+    } catch (e) {
+      
+      return null;
+    }
   }
 
   Future<void> deleteToken() async {
@@ -131,38 +202,8 @@ class AuthViewModel extends ChangeNotifier {
 //   notifyListeners();
 // }
 
-Future<void> fetchCurrentUser() async {
-    if (_currentUser != null) return; // Prevent re-fetching if user is already fetched
 
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
 
-    Map<String, dynamic>? tokenData = await getTokenData();
 
-    if (tokenData == null) {
-      _errorMessage = 'No valid token found.';
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
-
-    if (!tokenData.containsKey('id')) {
-      _errorMessage = 'Invalid token format.';
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
-
-    String userId = tokenData['id'].toString();
-    _currentUser = await _authService.fetchUser(userId);
-
-    if (_currentUser == null) {
-      _errorMessage = 'Failed to fetch user data.';
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
 
 }

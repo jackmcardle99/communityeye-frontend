@@ -84,4 +84,27 @@ class AuthService {
   }
 }
 
+ Future<String?> deleteUserAccount(String token) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('${baseUrl}delete_account'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': token,
+        },
+      );
+
+      if (response.statusCode == 201) {
+        print("Account deleted successfully.");
+        return null;  // No error
+      } else {
+        print('Failed to delete account with status: ${response.statusCode}');
+        return 'Failed to delete account. Please try again.';
+      }
+    } catch (e) {
+      print('Error deleting account: $e');
+      return 'Error deleting account: $e';
+    }
+  }
+
 }

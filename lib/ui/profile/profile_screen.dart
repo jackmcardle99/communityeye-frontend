@@ -1,3 +1,4 @@
+import 'package:communityeye_frontend/ui/auth/auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
@@ -81,8 +82,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: const Text('Logout'),
             ),
             TextButton(
-              onPressed: () {
-                // TODO: Implement delete profile logic
+              onPressed: () async {
+                // Trigger the delete account functionality
+                await authViewModel.deleteUserAccount();
+
+                // After deleting the account, navigate to another screen (e.g., login screen)
+                if (!authViewModel.isAuthenticated) {
+                  // Replace this with the appropriate navigation
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AuthScreen()),
+                    (Route<dynamic> route) => false, // Remove all previous routes
+                  );
+                }
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Delete Profile'),
