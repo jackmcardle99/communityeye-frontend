@@ -87,4 +87,14 @@ class AuthViewModel extends ChangeNotifier {
     _isAuthenticated = false;
     notifyListeners();
   }
+
+ Future<User?> fetchCurrentUser() async {
+  Map<String, dynamic>? tokenData = await getTokenData();
+  if (tokenData == null || !tokenData.containsKey('user_id')) return null;
+
+  String userId = tokenData['user_id'].toString();
+  return _authService.fetchUser(userId);
+}
+
+
 }

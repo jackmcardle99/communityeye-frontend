@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
 import 'package:http/http.dart' as http;
 import 'package:communityeye_frontend/data/model/user.dart';
 
@@ -53,4 +54,31 @@ class AuthService {
       return null;
     }
   }
+
+  Future<User?> fetchUser(String userId) async {
+  String? token = await AuthViewModel().getToken(); // Fetch token from ViewModel
+  if (token == null) return null;
+
+  try {
+    final response = await http.get(
+      Uri.parse('${baseUrl}users/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-access-token': token,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return User.fromJson(data);
+    } else {
+      print('Fetch user failed with status: ${response.statusCode}');
+      return null;
+    }
+  } catch (e) {
+    print('Fetch user failed with error: $e');
+    return null;
+  }
+}
+
 }
