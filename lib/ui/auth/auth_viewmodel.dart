@@ -38,18 +38,17 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // Login user
   Future<void> login(String email, String password) async {
     _setLoadingState(true);
     _errorMessage = null;
-    
+
     try {
-    
       await _authProvider.login(email, password);
-    
       _isAuthenticated = true;  // Set authenticated to true after successful login
     } catch (e) {
-      _errorMessage = 'Login failed: $e';
+      // Debug print to check the caught error
+      print('Login error: $e');
+      _errorMessage = 'Login failed: this email does not exist.';
     } finally {
       _setLoadingState(false);
     }
