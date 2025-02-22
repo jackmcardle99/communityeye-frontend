@@ -1,6 +1,7 @@
-import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
-import 'package:flutter/material.dart';
+import 'package:communityeye_frontend/data/providers/auth_provider.dart';
+import 'package:communityeye_frontend/data/repositories/report_repository.dart';
 import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
@@ -26,11 +27,11 @@ class ReportsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [              
+            children: [
               Image.network(report.image.url, height: 150, width: double.infinity, fit: BoxFit.cover),
               Text('Description: ${report.description}'),
               Text('Category: ${report.category}'),
-              Text('Authority: ${report.authority}'),              
+              Text('Authority: ${report.authority}'),
               Text(
                  'Created at: ${DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000))}'
               ),
@@ -46,7 +47,10 @@ class ReportsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ChangeNotifierProvider(
-        create: (context) => ReportsViewModel(AuthViewModel())..fetchReports(),
+        create: (context) => ReportsViewModel(
+          Provider.of<ReportRepository>(context, listen: false),
+          Provider.of<AuthProvider>(context, listen: false),
+        )..fetchReports(),
         child: Consumer<ReportsViewModel>(
           builder: (context, viewModel, child) {
             if (viewModel.isLoading) {

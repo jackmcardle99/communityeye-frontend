@@ -1,18 +1,18 @@
-// import 'package:communityeye_frontend/data/model/report.dart';
-// import 'package:communityeye_frontend/data/services/report_service.dart';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:communityeye_frontend/data/model/report.dart';
+import 'package:communityeye_frontend/data/services/report_service.dart';
 
-// class ReportRepository {
-//   ReportRepository({
-//     required ReportService reportService,
+class ReportRepository with ChangeNotifier {
+  final ReportService _reportService;
 
-//   }) : _reportService = reportService;
+  ReportRepository(this._reportService);
 
-//   final ReportService _reportService;
+  Future<List<Report>> fetchReports() async {
+    return await _reportService.fetchReports();
+  }
 
-
-//   Future<Result<List<Report>> getReports() aynsc {
-//     try {
-
-//     }
-//   }
-// }
+  Future<void> submitReport(String description, String category, File image, int userId) async {
+    await _reportService.createReport(description, category, image, userId: userId);
+  }
+}

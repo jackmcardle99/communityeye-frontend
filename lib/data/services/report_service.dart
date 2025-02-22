@@ -42,6 +42,5 @@ class ReportService {
       }
       // Default error handling
       throw const HttpException('Failed to create report. Please try again later.');
-  }
-  
+  } 
 }
