@@ -14,7 +14,6 @@ class AuthProvider with ChangeNotifier {
     _checkAuthentication();
   }
 
-
   bool get isAuthenticated => _isAuthenticated;
   int? get userId => _userId;
 
@@ -47,30 +46,35 @@ class AuthProvider with ChangeNotifier {
 
   Future<String?> login(String email, String password) async {
     String? token = await _authService.login(email, password);
-    print("1");
     if (token != null) {
       await _storage.write(key: 'jwt_token', value: token);
-      print("2");
       final tokenData = JWT.decode(token);
-      print(tokenData.payload['id']);
       _userId = tokenData.payload['id'];  // Store user ID
-      print("4");
       _isAuthenticated = true;
-      print("5");
       notifyListeners();
     }
-    print("6");
     return token;
+  }
+
+  Future<void> logout() async {
+    String? token = await getToken();
+    if (token != null) {
+      // Attempt to log out from the backend
+      bool success = await _authService.logout(token);
+      if (!success) {
+        // Log the failure but proceed with frontend logout
+        print('Backend logout failed, but proceeding with frontend logout.');
+      }
+      // Remove the token from storage and update authentication state
+      await deleteToken();
+    }
   }
 
   Future<void> deleteUserAccount() async {
     String? token = await getToken();
     if (token != null) {
       await _authService.deleteUserAccount(token);
-      await _storage.delete(key: 'jwt_token');
-      _isAuthenticated = false;
-      _userId = null;  // Clear user ID
-      notifyListeners();
+      await deleteToken();
     }
   }
 

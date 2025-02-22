@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:communityeye_frontend/data/providers/auth_provider.dart';
-import 'package:communityeye_frontend/data/providers/reports_provider.dart';
+import 'package:communityeye_frontend/data/repositories/report_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/report.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,7 +10,7 @@ import 'package:location/location.dart';
 import 'package:native_exif/native_exif.dart';
 
 class ReportsViewModel extends ChangeNotifier {
-  final ReportsProvider _reportProvider;
+  final ReportRepository _reportRepository;
   final AuthProvider _authProvider;
 
   List<Report> _reports = [];
@@ -51,7 +51,7 @@ class ReportsViewModel extends ChangeNotifier {
   File? get image => _image;
   List<String> get categories => _categories;
 
-  ReportsViewModel(this._reportProvider, this._authProvider);
+  ReportsViewModel(this._reportRepository, this._authProvider);
 
   Future<void> fetchReports() async {
     _isLoading = true;
@@ -59,8 +59,7 @@ class ReportsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _reports = await _reportProvider.fetchReports();
-      print(_reports);
+      _reports = await _reportRepository.fetchReports();
       _markers = _reports.map((report) {
         final lat = report.geolocation.geometry.coordinates[0];
         final lon = report.geolocation.geometry.coordinates[1];
@@ -158,7 +157,7 @@ class ReportsViewModel extends ChangeNotifier {
     final userId = _authProvider.userId;
 
     try {
-      await _reportProvider.submitReport(
+      await _reportRepository.submitReport(
         _description!,
         _selectedCategory!,
         _image!,

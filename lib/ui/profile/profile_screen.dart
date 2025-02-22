@@ -1,4 +1,3 @@
-import 'package:communityeye_frontend/data/providers/auth_provider.dart';
 import 'package:communityeye_frontend/ui/auth/auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,24 +18,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      if (authProvider.getToken() != null) {
-        profileViewModel.fetchUserProfile(); // Fetch profile data
-      } else {
-        // Handle case where the user is not authenticated
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AuthScreen()),
-        );
-      }
+      profileViewModel.fetchUserProfile(); // Fetch profile data  
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
-    final authProvider = Provider.of<AuthProvider>(context);
 
     if (profileViewModel.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -88,11 +76,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                // Trigger logout using AuthProvider
-                await authProvider.deleteToken();
-                Navigator.pushReplacement(
+                await profileViewModel.logout();
+                Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const AuthScreen()),
+                  (Route<dynamic> route) => false,
                 );
               },
               child: const Text('Logout'),
@@ -100,15 +88,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextButton(
               onPressed: () async {
                 // Trigger the delete account functionality using AuthProvider
-                await authProvider.deleteUserAccount();
-
-                if (authProvider.getToken() == null) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AuthScreen()),
-                    (Route<dynamic> route) => false,
-                  );
-                }
+                await profileViewModel.deleteUserAccount();               
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AuthScreen()),
+                  (Route<dynamic> route) => false,
+                );                
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Delete Profile'),
