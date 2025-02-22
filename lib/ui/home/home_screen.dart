@@ -1,3 +1,57 @@
+// import 'package:communityeye_frontend/ui/map/reports_screen.dart';
+// import 'package:communityeye_frontend/ui/profile/profile_screen.dart';
+// import 'package:communityeye_frontend/ui/reports/myreports_screen.dart';
+// import 'package:flutter/material.dart';
+
+// class HomeScreen extends StatefulWidget {
+//   const HomeScreen({super.key});
+
+//   @override
+//   _MainScreenState createState() => _MainScreenState();
+// }
+
+// class _MainScreenState extends State<HomeScreen> {
+//   int _selectedIndex = 0;
+
+//   static final List<Widget> _screens = <Widget>[
+//     const ReportsScreen(),
+//     const MyReportsScreen(),
+//     const ProfileScreen(),
+//   ];
+
+//   void _onItemTapped(int index) {
+//     setState(() {
+//       _selectedIndex = index;
+//     });
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: _screens[_selectedIndex],
+//       bottomNavigationBar: BottomNavigationBar(
+//         items: const <BottomNavigationBarItem>[
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.map),
+//             label: 'Reports',
+//           ),
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.assignment),
+//             label: 'My Reports',
+//           ),
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.person),
+//             label: 'Profile',
+//           ),
+//         ],
+//         currentIndex: _selectedIndex,
+//         onTap: _onItemTapped,
+//         showSelectedLabels: false,
+//         showUnselectedLabels: false,
+//       ),
+//     );
+//   }
+// }
 import 'package:communityeye_frontend/ui/map/reports_screen.dart';
 import 'package:communityeye_frontend/ui/profile/profile_screen.dart';
 import 'package:communityeye_frontend/ui/reports/myreports_screen.dart';
@@ -11,11 +65,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
 
   static final List<Widget> _screens = <Widget>[
-    const ReportsScreen(),
     const MyReportsScreen(),
+    const ReportsScreen(),
     const ProfileScreen(),
   ];
 
@@ -32,12 +86,12 @@ class _MainScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Reports',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.assignment),
             label: 'My Reports',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Reports',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
