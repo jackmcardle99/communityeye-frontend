@@ -1,7 +1,8 @@
+import 'package:communityeye_frontend/data/providers/auth_provider.dart';
 import 'package:communityeye_frontend/ui/auth/auth_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
+import 'package:communityeye_frontend/ui/profile/profile_viewmodel.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,30 +18,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AuthViewModel>(context, listen: false).fetchCurrentUser();
+      final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      if (authProvider.getToken() != null) {
+        profileViewModel.fetchUserProfile(); // Fetch profile data
+      } else {
+        // Handle case where the user is not authenticated
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthScreen()),
+        );
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final authViewModel = Provider.of<AuthViewModel>(context);
-    final user = authViewModel.currentUser;
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
 
-    // Show loading indicator while data is being fetched
-    if (authViewModel.isLoading) {
+    if (profileViewModel.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Show error message if there was a problem fetching the user
-    if (authViewModel.errorMessage != null) {
+    if (profileViewModel.errorMessage != null) {
       return Scaffold(
         body: Center(
-          child: Text(authViewModel.errorMessage!),
+          child: Text(profileViewModel.errorMessage!),
         ),
       );
     }
 
-    // If user is still null, show an appropriate message
+    final user = profileViewModel.user;
+
     if (user == null) {
       return const Scaffold(
         body: Center(child: Text('User not found or not authenticated')),
@@ -76,23 +87,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Text(_isEditing ? 'Save' : 'Edit Profile'),
             ),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implement logout logic
+              onPressed: () async {
+                // Trigger logout using AuthProvider
+                await authProvider.deleteToken();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AuthScreen()),
+                );
               },
               child: const Text('Logout'),
             ),
             TextButton(
               onPressed: () async {
-                // Trigger the delete account functionality
-                await authViewModel.deleteUserAccount();
+                // Trigger the delete account functionality using AuthProvider
+                await authProvider.deleteUserAccount();
 
-                // After deleting the account, navigate to another screen (e.g., login screen)
-                if (!authViewModel.isAuthenticated) {
-                  // Replace this with the appropriate navigation
+                if (authProvider.getToken() == null) {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => const AuthScreen()),
-                    (Route<dynamic> route) => false, // Remove all previous routes
+                    (Route<dynamic> route) => false,
                   );
                 }
               },
