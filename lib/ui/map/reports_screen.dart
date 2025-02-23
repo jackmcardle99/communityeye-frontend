@@ -1,111 +1,131 @@
+import 'dart:async';
 import 'package:communityeye_frontend/data/providers/auth_provider.dart';
 import 'package:communityeye_frontend/data/repositories/report_repository.dart';
 import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
- void _onMarkerTapped(BuildContext context, Marker marker) {
-  final viewModel = context.read<ReportsViewModel>();
-  final report = viewModel.reports.firstWhere((report) {
-    final lat = report.geolocation.geometry.coordinates[0];
-    final lon = report.geolocation.geometry.coordinates[1];
-    return marker.point.latitude == lat && marker.point.longitude == lon;
-  });
-
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) {
-      return DraggableScrollableSheet(
-        initialChildSize: 0.85, // Set the initial height to 85% of the screen
-        minChildSize: 0.25, // Minimum height when fully collapsed
-        maxChildSize: 0.9, // Maximum height when fully expanded
-        expand: false, // Start with the sheet in a non-expanded state
-        builder: (context, scrollController) {
-          return SingleChildScrollView(
-            controller: scrollController,
-            child: Container(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Image.network(
-                    report.image.url,
-                    fit: BoxFit.contain,
-                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Description: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    report.description,
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Category: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    report.category,
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Authority: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    report.authority,
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Created At: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000)),
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Resolved: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    report.resolved ? 'Yes' : 'No',
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
-  );
+  @override
+  _ReportsScreenState createState() => _ReportsScreenState();
 }
 
+class _ReportsScreenState extends State<ReportsScreen> {
+  final StreamController<void> _rebuildStream = StreamController.broadcast();
+  double _currentZoom = 8.0;
+
+  void _onMarkerTapped(BuildContext context, Marker marker) {
+    final viewModel = context.read<ReportsViewModel>();
+    final report = viewModel.reports.firstWhere((report) {
+      final lat = report.geolocation.geometry.coordinates[0];
+      final lon = report.geolocation.geometry.coordinates[1];
+      return marker.point.latitude == lat && marker.point.longitude == lon;
+    });
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.25,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.network(
+                      report.image.url,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Description: ',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      report.description,
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Category: ',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      report.category,
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Authority: ',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      report.authority,
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Created At: ',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000)),
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Status: ',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      report.resolved ? 'Resolved' : 'In progress',
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _onClusterTapped(BuildContext context, MarkerCluster cluster) {
+    // Handle cluster tap, e.g., zoom in to the cluster
+    // You can implement logic to zoom in to the cluster's center
+  }
+
+  @override
+  void dispose() {
+    _rebuildStream.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,29 +142,77 @@ class ReportsScreen extends StatelessWidget {
             } else if (viewModel.errorMessage.isNotEmpty) {
               return Center(child: Text('Error: ${viewModel.errorMessage}'));
             } else {
+              // Extract heatmap data from reports
+              final heatmapData = viewModel.reports.map((report) {
+                final lat = report.geolocation.geometry.coordinates[0];
+                final lon = report.geolocation.geometry.coordinates[1];
+                return WeightedLatLng(LatLng(lat, lon), 1);
+              }).toList();
+
               return FlutterMap(
-                options: const MapOptions(
-                  initialCenter: LatLng(54.637, -6.671),
-                  initialZoom: 8,
+                options: MapOptions(
+                  initialCenter: const LatLng(54.637, -6.671),
+                  initialZoom: _currentZoom,
+                  onPositionChanged: (position, hasGesture) {
+                    setState(() {
+                      _currentZoom = position.zoom;
+                    });
+                    viewModel.calculateClusters(_currentZoom);
+                  },
                 ),
                 children: [
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.example.app',
                   ),
-                  MarkerLayer(
-                    markers: viewModel.markers.map((marker) {
-                      return Marker(
-                        width: 40.0,
-                        height: 40.0,
-                        point: marker.point,
-                        child: GestureDetector(
-                          onTap: () => _onMarkerTapped(context, marker),
-                          child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                  if (heatmapData.isNotEmpty)
+                    HeatMapLayer(
+                      heatMapDataSource: InMemoryHeatMapDataSource(data: heatmapData),
+                      heatMapOptions: HeatMapOptions(
+                        gradient: HeatMapOptions.defaultGradient,
+                        minOpacity: 0.1,
+                      ),
+                      reset: _rebuildStream.stream,
+                    ),
+                  if (_currentZoom < 12)
+                    MarkerLayer(
+                      markers: viewModel.clusters.map((cluster) {
+                        return Marker(
+                          width: 40.0,
+                          height: 40.0,
+                          point: cluster.center,
+                          child: GestureDetector(
+                            onTap: () => _onClusterTapped(context, cluster),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${cluster.count}',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    )
+                  else
+                    MarkerLayer(
+                      markers: viewModel.markers.map((marker) {
+                        return Marker(
+                          width: 40.0,
+                          height: 40.0,
+                          point: marker.point,
+                          child: GestureDetector(
+                            onTap: () => _onMarkerTapped(context, marker),
+                            child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                 ],
               );
             }
@@ -169,6 +237,8 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 }
+
+
 
 class AddReportForm extends StatelessWidget {
   const AddReportForm({super.key});

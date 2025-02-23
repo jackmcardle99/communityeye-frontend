@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:communityeye_frontend/data/providers/auth_provider.dart';
 import 'package:communityeye_frontend/data/repositories/report_repository.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class ReportsViewModel extends ChangeNotifier {
 
   List<Report> _reports = [];
   List<Marker> _markers = [];
+  List<MarkerCluster> _clusters = [];
   bool _isLoading = true;
   bool _isSubmissionSuccessful = false;
   String _errorMessage = '';
@@ -43,6 +45,7 @@ class ReportsViewModel extends ChangeNotifier {
 
   List<Report> get reports => _reports;
   List<Marker> get markers => _markers;
+  List<MarkerCluster> get clusters => _clusters;
   bool get isLoading => _isLoading;
   bool get isSubmissionSuccessful => _isSubmissionSuccessful;
   String get errorMessage => _errorMessage;
@@ -70,6 +73,8 @@ class ReportsViewModel extends ChangeNotifier {
           child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
         );
       }).toList();
+
+      calculateClusters(8.0);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -77,6 +82,65 @@ class ReportsViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+void calculateClusters(double zoomLevel) {
+  // Define zoom level thresholds for splitting clusters
+  const zoomThresholds = [7, 8.5, 10.0, 11.0];
+  double clusterSize = 0.1; // Default cluster size
+
+  // Determine cluster size based on zoom level thresholds
+  if (zoomLevel < zoomThresholds[0]) {
+    // Single cluster at the top level
+    final totalLat = _markers.fold(0.0, (sum, marker) => sum + marker.point.latitude);
+    final totalLon = _markers.fold(0.0, (sum, marker) => sum + marker.point.longitude);
+    final center = LatLng(totalLat / _markers.length, totalLon / _markers.length);
+    _clusters = [MarkerCluster(center, _markers.length)];
+    print('Zoom Level: $zoomLevel, Cluster Size: Single Cluster');
+  } else if (zoomLevel < zoomThresholds[1]) {
+    clusterSize = 0.5; // Split into smaller clusters
+    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
+  } else if (zoomLevel < zoomThresholds[2]) {
+    clusterSize = 0.25; // Further split into smaller clusters
+    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
+  } else if (zoomLevel < zoomThresholds[3]) {
+    clusterSize = 0.125; // Even smaller clusters
+    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
+  } else  {
+    clusterSize = 0.0625; // Smallest clusters
+    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
+  } 
+
+  if (zoomLevel >= zoomThresholds[0]) {
+    final clusters = <MarkerCluster>[];
+    final clusterMap = <String, List<LatLng>>{};
+
+    for (final marker in _markers) {
+      final lat = (marker.point.latitude / clusterSize).floor() * clusterSize;
+      final lon = (marker.point.longitude / clusterSize).floor() * clusterSize;
+      final key = '$lat-$lon';
+
+      if (clusterMap.containsKey(key)) {
+        clusterMap[key]!.add(marker.point);
+      } else {
+        clusterMap[key] = [marker.point];
+      }
+    }
+
+    clusterMap.forEach((key, points) {
+      // Use the first point as the cluster center to maintain consistency
+      final center = points.first;
+      clusters.add(MarkerCluster(center, points.length));
+    });
+
+    _clusters = clusters;
+  }
+
+  notifyListeners();
+}
+
+
+
+
 
   void setDescription(String value) {
     _description = value;
@@ -175,4 +239,11 @@ class ReportsViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+}
+
+class MarkerCluster {
+  final LatLng center;
+  final int count;
+
+  MarkerCluster(this.center, this.count);
 }
