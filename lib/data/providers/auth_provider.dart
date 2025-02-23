@@ -186,7 +186,9 @@ class AuthProvider with ChangeNotifier {
       String? token = await _authService.register(user);
       await _storage.write(key: 'jwt_token', value: token);
       final tokenData = JWT.decode(token);
-      _userId = tokenData.payload['user_id'];  // Store user ID
+      // _userId = tokenData.payload['user_id'];  // Store user ID
+      _userId = int.parse(tokenData.payload['user_id']); 
+      print(_userId.runtimeType);
       _isAuthenticated = true;
       notifyListeners();
           return token;
@@ -203,6 +205,7 @@ class AuthProvider with ChangeNotifier {
         await _storage.write(key: 'jwt_token', value: token);
         final tokenData = JWT.decode(token);
         _userId = tokenData.payload['user_id'];  // Store user ID
+        // _userId = int.parse(tokenData.payload['user_id']); 
         _isAuthenticated = true;
         notifyListeners();
       }

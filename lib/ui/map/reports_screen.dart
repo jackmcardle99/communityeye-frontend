@@ -11,37 +11,101 @@ import 'package:intl/intl.dart';
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
 
-  void _onMarkerTapped(BuildContext context, Marker marker) {
-    final viewModel = Provider.of<ReportsViewModel>(context, listen: false);
-    final report = viewModel.reports.firstWhere((report) {
-      final lat = report.geolocation.geometry.coordinates[0];
-      final lon = report.geolocation.geometry.coordinates[1];
-      return marker.point.latitude == lat && marker.point.longitude == lon;
-    });
+ void _onMarkerTapped(BuildContext context, Marker marker) {
+  final viewModel = context.read<ReportsViewModel>();
+  final report = viewModel.reports.firstWhere((report) {
+    final lat = report.geolocation.geometry.coordinates[0];
+    final lon = report.geolocation.geometry.coordinates[1];
+    return marker.point.latitude == lat && marker.point.longitude == lon;
+  });
 
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          height: 200,
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.network(report.image.url, height: 150, width: double.infinity, fit: BoxFit.cover),
-              Text('Description: ${report.description}'),
-              Text('Category: ${report.category}'),
-              Text('Authority: ${report.authority}'),
-              Text(
-                 'Created at: ${DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000))}'
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) {
+      return DraggableScrollableSheet(
+        initialChildSize: 0.85, // Set the initial height to 85% of the screen
+        minChildSize: 0.25, // Minimum height when fully collapsed
+        maxChildSize: 0.9, // Maximum height when fully expanded
+        expand: false, // Start with the sheet in a non-expanded state
+        builder: (context, scrollController) {
+          return SingleChildScrollView(
+            controller: scrollController,
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.network(
+                    report.image.url,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Description: ',
+                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    report.description,
+                    style: const TextStyle(fontSize: 16.0),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Category: ',
+                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    report.category,
+                    style: const TextStyle(fontSize: 16.0),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Authority: ',
+                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    report.authority,
+                    style: const TextStyle(fontSize: 16.0),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Created At: ',
+                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000)),
+                    style: const TextStyle(fontSize: 16.0),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Resolved: ',
+                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    report.resolved ? 'Yes' : 'No',
+                    style: const TextStyle(fontSize: 16.0),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
-              Text('Resolved: ${report.resolved}')
-            ],
-          ),
-        );
-      },
-    );
-  }
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +158,7 @@ class ReportsScreen extends StatelessWidget {
             isScrollControlled: true,
             builder: (context) {
               return ChangeNotifierProvider.value(
-                value: Provider.of<ReportsViewModel>(context, listen: false),
+                value: context.read<ReportsViewModel>(),
                 child: const AddReportForm(),
               );
             },
@@ -111,7 +175,7 @@ class AddReportForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<ReportsViewModel>(context);
+    final viewModel = context.read<ReportsViewModel>();
 
     return Padding(
       padding: MediaQuery.of(context).viewInsets,

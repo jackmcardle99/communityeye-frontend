@@ -12,7 +12,15 @@ class ReportRepository with ChangeNotifier {
     return await _reportService.fetchReports();
   }
 
+  Future<List<Report>> fetchReportsByUserId(int userId) async {
+    return await _reportService.fetchReportsByUserId(userId);
+  }
+
   Future<void> submitReport(String description, String category, File image, int userId) async {
     await _reportService.createReport(description, category, image, userId: userId);
+  }
+
+  Future<void> deleteReport(String reportId) async {
+    await _reportService.deleteReport(reportId);
   }
 }

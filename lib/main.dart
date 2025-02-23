@@ -8,6 +8,7 @@ import 'package:communityeye_frontend/data/services/report_service.dart';
 import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
 import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
 import 'package:communityeye_frontend/ui/profile/profile_viewmodel.dart'; // Import ProfileViewModel
+import 'package:communityeye_frontend/ui/reports/myreport_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -51,6 +52,13 @@ class MyApp extends StatelessWidget {
         // Provide the ReportsViewModel to the app
         ChangeNotifierProvider(
           create: (context) => ReportsViewModel(
+            Provider.of<ReportRepository>(context, listen: false),
+            Provider.of<AuthProvider>(context, listen: false),
+          ),
+        ),
+         // Provide the MyReportsViewModel to the app
+        ChangeNotifierProvider(
+          create: (context) => MyReportsViewModel(
             Provider.of<ReportRepository>(context, listen: false),
             Provider.of<AuthProvider>(context, listen: false),
           ),
