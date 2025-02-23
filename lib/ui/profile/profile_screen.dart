@@ -17,8 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
-      profileViewModel.fetchUserProfile(); // Fetch profile data  
+      context.read<ProfileViewModel>().fetchUserProfile(); // Fetch profile data
     });
   }
 
@@ -71,12 +70,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ElevatedButton(
               onPressed: () {
                 setState(() => _isEditing = !_isEditing);
+                // if (!_isEditing) {
+                //   // Save changes if editing is turned off
+                //   context.read<ProfileViewModel>().saveProfileChanges(
+                //     user.copyWith(
+                //       firstName: user.firstName,
+                //       lastName: user.lastName,
+                //     ),
+                //   );
+                // }
               },
               child: Text(_isEditing ? 'Save' : 'Edit Profile'),
             ),
             ElevatedButton(
               onPressed: () async {
-                await profileViewModel.logout();
+                await context.read<ProfileViewModel>().logout();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const AuthScreen()),
@@ -87,13 +95,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             TextButton(
               onPressed: () async {
-                // Trigger the delete account functionality using AuthProvider
-                await profileViewModel.deleteUserAccount();               
+                await context.read<ProfileViewModel>().deleteUserAccount();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const AuthScreen()),
                   (Route<dynamic> route) => false,
-                );                
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Delete Profile'),
@@ -104,3 +111,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+

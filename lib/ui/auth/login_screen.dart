@@ -10,20 +10,20 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<AuthViewModel>(context);
 
-    final _formKey = GlobalKey<FormState>();
-    final _emailController = TextEditingController();
-    final _passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             children: [
               TextFormField(
-                controller: _emailController,
+                controller: emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -33,7 +33,7 @@ class LoginScreen extends StatelessWidget {
                 },
               ),
               TextFormField(
-                controller: _passwordController,
+                controller: passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
                 validator: (value) {
@@ -48,10 +48,10 @@ class LoginScreen extends StatelessWidget {
                   ? const CircularProgressIndicator() // Show loading indicator while logging in
                   : ElevatedButton(
                       onPressed: () async {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          await viewModel.login(
-                            _emailController.text,
-                            _passwordController.text,
+                        if (formKey.currentState?.validate() ?? false) {
+                           await context.read<AuthViewModel>().login(
+                            emailController.text,
+                            passwordController.text,
                           );
 
                           if (viewModel.errorMessage == null) {

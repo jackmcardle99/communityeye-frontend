@@ -102,7 +102,7 @@ class RegisterScreen extends StatelessWidget {
                             city: _cityController.text,
                             password: _passwordController.text,
                           );
-                          await viewModel.register(user);
+                          await context.read<AuthViewModel>().register(user); 
 
                           if (viewModel.errorMessage == null) {
                             // Navigate to the HomeScreen on successful registration

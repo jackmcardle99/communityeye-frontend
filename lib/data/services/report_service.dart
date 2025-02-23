@@ -53,5 +53,13 @@ class ReportService {
       }
       // Default error handling
       throw const HttpException('Failed to create report. Please try again later.');
+  }
+  
+  Future<void> deleteReport(String reportId) async {
+    final response = await http.delete(Uri.parse('${baseUrl}reports/$reportId'));
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to delete report. Please try again later.');
+    }
   } 
 }
