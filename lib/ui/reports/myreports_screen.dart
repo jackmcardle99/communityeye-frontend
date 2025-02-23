@@ -91,11 +91,11 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Resolved: ',
+                    'Status: ',
                     style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    report.resolved ? 'Yes' : 'No',
+                    report.resolved ? 'Resolved' : 'In progress',
                     style: const TextStyle(fontSize: 16.0),
                   ),
                   const SizedBox(height: 16),
