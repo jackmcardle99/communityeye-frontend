@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'dart:math' as math;
 import 'package:communityeye_frontend/data/providers/auth_provider.dart';
 import 'package:communityeye_frontend/data/repositories/report_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/report.dart';
+import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,6 +17,8 @@ class ReportsViewModel extends ChangeNotifier {
   List<Report> _reports = [];
   List<Marker> _markers = [];
   List<MarkerCluster> _clusters = [];
+  List<WeightedLatLng> _heatmapData = [];
+  bool _showHeatmap = false;
   bool _isLoading = true;
   bool _isSubmissionSuccessful = false;
   String _errorMessage = '';
@@ -46,6 +48,8 @@ class ReportsViewModel extends ChangeNotifier {
   List<Report> get reports => _reports;
   List<Marker> get markers => _markers;
   List<MarkerCluster> get clusters => _clusters;
+  List<WeightedLatLng> get heatmapData => _heatmapData;
+  bool get showHeatmap => _showHeatmap;
   bool get isLoading => _isLoading;
   bool get isSubmissionSuccessful => _isSubmissionSuccessful;
   String get errorMessage => _errorMessage;
@@ -56,6 +60,8 @@ class ReportsViewModel extends ChangeNotifier {
 
   ReportsViewModel(this._reportRepository, this._authProvider);
 
+
+  
   Future<void> fetchReports() async {
     _isLoading = true;
     _errorMessage = '';
@@ -63,6 +69,7 @@ class ReportsViewModel extends ChangeNotifier {
 
     try {
       _reports = await _reportRepository.fetchReports();
+      
       _markers = _reports.map((report) {
         final lat = report.geolocation.geometry.coordinates[0];
         final lon = report.geolocation.geometry.coordinates[1];
@@ -72,6 +79,12 @@ class ReportsViewModel extends ChangeNotifier {
           point: LatLng(lat, lon),
           child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
         );
+      }).toList();
+      
+      _heatmapData = _reports.map((report) {
+        final lat = report.geolocation.geometry.coordinates[0];
+        final lon = report.geolocation.geometry.coordinates[1];
+        return WeightedLatLng(LatLng(lat, lon), 1);
       }).toList();
 
       calculateClusters(8.0);
@@ -137,9 +150,6 @@ void calculateClusters(double zoomLevel) {
 
   notifyListeners();
 }
-
-
-
 
 
   void setDescription(String value) {
@@ -239,7 +249,14 @@ void calculateClusters(double zoomLevel) {
       notifyListeners();
     }
   }
+
+  void toggleHeatmap() {
+    _showHeatmap = !_showHeatmap;
+    notifyListeners();
+  }
 }
+
+
 
 class MarkerCluster {
   final LatLng center;
