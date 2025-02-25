@@ -11,24 +11,24 @@ class RegisterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<AuthViewModel>(context);
 
-    final _formKey = GlobalKey<FormState>();
-    final _firstNameController = TextEditingController();
-    final _lastNameController = TextEditingController();
-    final _emailController = TextEditingController();
-    final _mobileNumberController = TextEditingController();
-    final _cityController = TextEditingController();
-    final _passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final firstNameController = TextEditingController();
+    final lastNameController = TextEditingController();
+    final emailController = TextEditingController();
+    final mobileNumberController = TextEditingController();
+    final cityController = TextEditingController();
+    final passwordController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Register')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             children: [
               TextFormField(
-                controller: _firstNameController,
+                controller: firstNameController,
                 decoration: const InputDecoration(labelText: 'First Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -38,7 +38,7 @@ class RegisterScreen extends StatelessWidget {
                 },
               ),
               TextFormField(
-                controller: _lastNameController,
+                controller: lastNameController,
                 decoration: const InputDecoration(labelText: 'Last Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -48,7 +48,7 @@ class RegisterScreen extends StatelessWidget {
                 },
               ),
               TextFormField(
-                controller: _emailController,
+                controller: emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -58,7 +58,7 @@ class RegisterScreen extends StatelessWidget {
                 },
               ),
               TextFormField(
-                controller: _mobileNumberController,
+                controller: mobileNumberController,
                 decoration: const InputDecoration(labelText: 'Mobile Number'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -68,7 +68,7 @@ class RegisterScreen extends StatelessWidget {
                 },
               ),
               TextFormField(
-                controller: _cityController,
+                controller: cityController,
                 decoration: const InputDecoration(labelText: 'City'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -78,7 +78,7 @@ class RegisterScreen extends StatelessWidget {
                 },
               ),
               TextFormField(
-                controller: _passwordController,
+                controller: passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
                 validator: (value) {
@@ -90,29 +90,27 @@ class RegisterScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               viewModel.isLoading
-                  ? const CircularProgressIndicator() // Show loading indicator while registering
+                  ? const CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: () async {
-                        if (_formKey.currentState?.validate() ?? false) {
+                        if (formKey.currentState?.validate() ?? false) {
                           final user = User(
-                            firstName: _firstNameController.text,
-                            lastName: _lastNameController.text,
-                            email: _emailController.text,
-                            mobileNumber: _mobileNumberController.text,
-                            city: _cityController.text,
-                            password: _passwordController.text,
+                            firstName: firstNameController.text,
+                            lastName: lastNameController.text,
+                            email: emailController.text,
+                            mobileNumber: mobileNumberController.text,
+                            city: cityController.text,
+                            password: passwordController.text,
                           );
-                          await context.read<AuthViewModel>().register(user); 
+                          await context.read<AuthViewModel>().register(user);
 
                           if (viewModel.errorMessage == null) {
-                            // Navigate to the HomeScreen on successful registration
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const HomeScreen()),
                             );
                           } else {
-                            // Show error message if registration failed
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(viewModel.errorMessage!)),
                             );

@@ -23,7 +23,8 @@ class AuthScreen extends StatelessWidget {
                   : () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
                       );
                     },
               child: const Text('Login'),
@@ -34,7 +35,8 @@ class AuthScreen extends StatelessWidget {
                   : () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const RegisterScreen()),
                       );
                     },
               child: const Text('Register'),

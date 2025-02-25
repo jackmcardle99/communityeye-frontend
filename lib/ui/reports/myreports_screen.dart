@@ -1,17 +1,17 @@
 import 'package:communityeye_frontend/ui/reports/myreport_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // For date formatting
+import 'package:intl/intl.dart';
 import 'package:communityeye_frontend/data/model/report.dart';
 
 class MyReportsScreen extends StatefulWidget {
   const MyReportsScreen({super.key});
 
   @override
-  _MyReportsScreenState createState() => _MyReportsScreenState();
+  MyReportsScreenState createState() => MyReportsScreenState();
 }
 
-class _MyReportsScreenState extends State<MyReportsScreen> {
+class MyReportsScreenState extends State<MyReportsScreen> {
   @override
   void initState() {
     super.initState();
@@ -21,123 +21,137 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
   }
 
   void _showReportDetails(Report report) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) {
-      return DraggableScrollableSheet(
-        initialChildSize: 0.85, // Set the initial height to 85% of the screen
-        minChildSize: 0.25, // Minimum height when fully collapsed
-        maxChildSize: 0.9, // Maximum height when fully expanded
-        expand: false, // Start with the sheet in a non-expanded state
-        builder: (context, scrollController) {
-          return SingleChildScrollView(
-            controller: scrollController,
-            child: Container(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.network(
-                    report.image.url,
-                    fit: BoxFit.contain,
-                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                              : null,
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.25,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.network(
+                      report.image.url,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Description: ',
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      report.description,
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Category: ',
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      report.category,
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Authority: ',
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      report.authority,
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Created At: ',
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      DateFormat('dd-MM-yyyy').format(
+                          DateTime.fromMillisecondsSinceEpoch(
+                              report.createdAt * 1000)),
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Status: ',
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      report.resolved ? 'Resolved' : 'In progress',
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8.0),
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Description: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    report.description,
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Category: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    report.category,
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Authority: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    report.authority,
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Created At: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000)),
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Status: ',
-                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    report.resolved ? 'Resolved' : 'In progress',
-                    style: const TextStyle(fontSize: 16.0),
-                  ),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () async {
-                          bool isDeleted = await context.read<MyReportsViewModel>().deleteReport(report.id);
-                          if (isDeleted) {
-                            Navigator.of(context).pop(); // Close the bottom sheet
-                          } else {
-                            // Optionally, show an error message or handle the failure case
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Failed to delete the report')),
-                            );
-                          }
-                        },
+                        child: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () async {
+                            bool isDeleted = await context
+                                .read<MyReportsViewModel>()
+                                .deleteReport(report.id);
+                            if (isDeleted) {
+                              Navigator.of(context).pop();
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Failed to delete the report')),
+                              );
+                            }
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16), // Add space at the bottom to ensure the button is accessible
-                ],
+                    const SizedBox(
+                        height:
+                            16),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Reports'), automaticallyImplyLeading: false),
+      appBar: AppBar(
+          title: const Text('My Reports'), automaticallyImplyLeading: false),
       body: Consumer<MyReportsViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.isLoading) {
@@ -158,14 +172,15 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               Report report = viewModel.reports[index];
               String formattedDate = DateFormat('dd-MM-yyyy').format(
                 DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000),
-              );                    
+              );
 
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: Container(
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2), // Lighten the color
+                    color: Colors.grey.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: Column(
@@ -175,7 +190,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                         contentPadding: EdgeInsets.zero,
                         title: RichText(
                           text: TextSpan(
-                            style: const TextStyle(fontSize: 16.0, color: Colors.black),
+                            style: const TextStyle(
+                                fontSize: 16.0, color: Colors.black),
                             children: [
                               const TextSpan(
                                 text: 'Description: ',
@@ -194,21 +210,27 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                           children: [
                             RichText(
                               text: TextSpan(
-                                style: const TextStyle(fontSize: 14.0, color: Colors.black),
+                                style: const TextStyle(
+                                    fontSize: 14.0, color: Colors.black),
                                 children: [
                                   const TextSpan(
                                     text: 'Authority: ',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   TextSpan(
                                     text: report.authority,
-                                    style: const TextStyle(overflow: TextOverflow.ellipsis, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        overflow: TextOverflow.ellipsis,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
                               maxLines: 1,
                             ),
-                            Text('Created At: $formattedDate',),
+                            Text(
+                              'Created At: $formattedDate',
+                            ),
                             Text('Resolved: ${report.resolved ? 'Yes' : 'No'}'),
                           ],
                         ),

@@ -17,7 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProfileViewModel>().fetchUserProfile(); // Fetch profile data
+      context.read<ProfileViewModel>().fetchUserProfile();
     });
   }
 
@@ -64,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextFormField(
               initialValue: user.email,
               decoration: const InputDecoration(labelText: 'Email'),
-              enabled: false, // Email shouldn't be editable
+              enabled: false,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -111,4 +111,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-

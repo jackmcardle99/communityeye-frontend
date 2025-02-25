@@ -29,7 +29,8 @@ class AuthProvider with ChangeNotifier {
       } else {
         _isAuthenticated = false;
         _userId = null;
-        LoggerService.logger.i('User is not authenticated and/or session has expired. Login required');
+        LoggerService.logger.i(
+            'User is not authenticated and/or session has expired. Login required');
       }
       notifyListeners();
     } catch (e) {
@@ -47,7 +48,8 @@ class AuthProvider with ChangeNotifier {
       final tokenData = JWT.decode(token);
       _userId = int.parse(tokenData.payload['user_id']);
       _isAuthenticated = true;
-      LoggerService.logger.i('User registered and authenticated. User ID: $_userId');
+      LoggerService.logger
+          .i('User registered and authenticated. User ID: $_userId');
       notifyListeners();
       return token;
     } catch (e) {
@@ -108,7 +110,8 @@ class AuthProvider with ChangeNotifier {
         if (exp != null) {
           final expiryDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
           if (expiryDate.isBefore(DateTime.now())) {
-            LoggerService.logger.w('Token expired for User ID: $_userId. Deleting token.');
+            LoggerService.logger
+                .w('Token expired for User ID: $_userId. Deleting token.');
             await deleteToken();
             return null;
           }
@@ -127,7 +130,8 @@ class AuthProvider with ChangeNotifier {
     try {
       await _storage.delete(key: 'jwt_token');
       _isAuthenticated = false;
-      LoggerService.logger.i('Token deleted for User ID: $_userId. User is not authenticated.');
+      LoggerService.logger
+          .i('Token deleted for User ID: $_userId. User is not authenticated.');
       _userId = null;
       notifyListeners();
     } catch (e) {
@@ -143,7 +147,8 @@ class AuthProvider with ChangeNotifier {
       }
       return null;
     } catch (e) {
-      LoggerService.logger.e('Error fetching user data for User ID: $userId - Error: $e');
+      LoggerService.logger
+          .e('Error fetching user data for User ID: $userId - Error: $e');
       return null;
     }
   }

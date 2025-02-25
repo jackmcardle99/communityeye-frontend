@@ -3,7 +3,6 @@ import 'package:communityeye_frontend/data/repositories/report_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/report.dart';
 
-
 class MyReportsViewModel with ChangeNotifier {
   final ReportRepository _reportRepository;
   final AuthProvider _authProvider;
@@ -33,39 +32,22 @@ class MyReportsViewModel with ChangeNotifier {
     }
   }
 
-  //  Future<void> deleteReport(String reportId) async {
-  //   _isLoading = true;
-  //   _errorMessage = null;
-  //   notifyListeners();
-
-  //   try {
-  //     await _reportRepository.deleteReport(reportId);
-  //     _reports.removeWhere((report) => report.id == reportId);
-  //   } catch (e) {
-  //     _errorMessage = 'Failed to delete report. Please try again later.';
-  //   } finally {
-  //     _isLoading = false;
-  //     notifyListeners();
-  //   }
-  // }
-
-   Future<bool> deleteReport(String reportId) async {
+  Future<bool> deleteReport(String reportId) async {
     _isLoading = true;
     _errorMessage = null;
     try {
-      // Assuming you have a repository or service to handle the deletion
       await _reportRepository.deleteReport(reportId);
-      // If successful, remove the report from the local list and notify listeners
+
       reports.removeWhere((report) => report.id == reportId);
       notifyListeners();
       _isLoading = false;
-      return true; // Indicate success
+      return true;
     } catch (e) {
       _isLoading = false;
-      // Handle errors (e.g., show an error message)
+
       _errorMessage = 'Failed to delete the report';
       notifyListeners();
-      return false; // Indicate failure
+      return false;
     }
   }
 }

@@ -14,10 +14,10 @@ class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
   @override
-  _ReportsScreenState createState() => _ReportsScreenState();
+  ReportsScreenState createState() => ReportsScreenState();
 }
 
-class _ReportsScreenState extends State<ReportsScreen> {
+class ReportsScreenState extends State<ReportsScreen> {
   final StreamController<void> _rebuildStream = StreamController.broadcast();
   double _currentZoom = 8.0;
 
@@ -49,12 +49,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     Image.network(
                       report.image.url,
                       fit: BoxFit.contain,
-                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Center(
                           child: CircularProgressIndicator(
                             value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
                                 : null,
                           ),
                         );
@@ -63,7 +65,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     const SizedBox(height: 16),
                     const Text(
                       'Description: ',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       report.description,
@@ -72,7 +75,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Category: ',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       report.category,
@@ -81,7 +85,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Authority: ',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       report.authority,
@@ -90,16 +95,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Created At: ',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(report.createdAt * 1000)),
+                      DateFormat('dd-MM-yyyy').format(
+                          DateTime.fromMillisecondsSinceEpoch(
+                              report.createdAt * 1000)),
                       style: const TextStyle(fontSize: 16.0),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Status: ',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16.0, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       report.resolved ? 'Resolved' : 'In progress',
@@ -152,12 +161,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                     children: [
                       TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.example.app',
                       ),
-                      if (viewModel.showHeatmap && viewModel.heatmapData.isNotEmpty)
+                      if (viewModel.showHeatmap &&
+                          viewModel.heatmapData.isNotEmpty)
                         HeatMapLayer(
-                          heatMapDataSource: InMemoryHeatMapDataSource(data: viewModel.heatmapData),
+                          heatMapDataSource: InMemoryHeatMapDataSource(
+                              data: viewModel.heatmapData),
                           heatMapOptions: HeatMapOptions(
                             gradient: HeatMapOptions.defaultGradient,
                             minOpacity: 0.1,
@@ -180,7 +192,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                   child: Center(
                                     child: Text(
                                       '${cluster.count}',
-                                      style: const TextStyle(color: Colors.white),
+                                      style:
+                                          const TextStyle(color: Colors.white),
                                     ),
                                   ),
                                 ),
@@ -197,7 +210,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                               point: marker.point,
                               child: GestureDetector(
                                 onTap: () => _onMarkerTapped(context, marker),
-                                child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+                                child: const Icon(Icons.location_on,
+                                    color: Colors.red, size: 40.0),
                               ),
                             );
                           }).toList(),
@@ -214,7 +228,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           onPressed: () {
                             viewModel.toggleHeatmap();
                           },
-                          child: Icon(viewModel.showHeatmap ? Icons.layers_clear : Icons.layers),
+                          child: Icon(viewModel.showHeatmap
+                              ? Icons.layers_clear
+                              : Icons.layers),
                         ),
                         const SizedBox(height: 8.0),
                         FloatingActionButton(
@@ -283,11 +299,13 @@ class AddReportForm extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.camera_alt),
-                    onPressed: () => viewModel.pickImageWithLocation(ImageSource.camera),
+                    onPressed: () =>
+                        viewModel.pickImageWithLocation(ImageSource.camera),
                   ),
                   IconButton(
                     icon: const Icon(Icons.photo_library),
-                    onPressed: () => viewModel.pickImageWithLocation(ImageSource.gallery),
+                    onPressed: () =>
+                        viewModel.pickImageWithLocation(ImageSource.gallery),
                   ),
                 ],
               ),

@@ -45,24 +45,22 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               viewModel.isLoading
-                  ? const CircularProgressIndicator() // Show loading indicator while logging in
+                  ? const CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: () async {
                         if (formKey.currentState?.validate() ?? false) {
-                           await context.read<AuthViewModel>().login(
-                            emailController.text,
-                            passwordController.text,
-                          );
+                          await context.read<AuthViewModel>().login(
+                                emailController.text,
+                                passwordController.text,
+                              );
 
                           if (viewModel.errorMessage == null) {
-                            // Navigate to the HomeScreen on successful login
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const HomeScreen()),
                             );
                           } else {
-                            // Show error message if login failed
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(viewModel.errorMessage!)),
                             );
