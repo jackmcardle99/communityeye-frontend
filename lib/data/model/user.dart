@@ -1,18 +1,18 @@
 class User {
-  final String? firstName;
-  final String? lastName;
-  final String? email;
-  final String? mobileNumber;
-  final String? city;
-  final String? password;
+  final String ? firstName;
+  final String ? lastName;
+  final String ? email;
+  final String ? mobileNumber;
+  final String ? city;
+  final String ? password;
 
   User({
-    this.firstName,
-    this.lastName,
-    this.email,
-    this.mobileNumber,
-    this.city,
-    this.password,
+      this.firstName,
+      this.lastName,
+      this.email,
+      this.mobileNumber,
+      this.city,
+      this.password,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -28,12 +28,12 @@ class User {
 
   Map<String, dynamic> toJson() {
     return {
-      'first_name': firstName,
-      'last_name': lastName,
-      'email_address': email,
-      'mobile_number': mobileNumber,
-      'city': city,
-      'password': password,
+      'first_name' : firstName,
+      'last_name' : lastName,
+      'email_address' : email,
+      'mobile_number' : mobileNumber,
+      'city' : city,
+      'password' : password,
     };
   }
 }

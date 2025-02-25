@@ -1,3 +1,4 @@
+import 'package:communityeye_frontend/data/services/logger_service.dart';
 import 'package:communityeye_frontend/ui/auth/auth_screen.dart';
 import 'package:communityeye_frontend/ui/home/home_screen.dart';
 import 'package:communityeye_frontend/data/providers/auth_provider.dart';
@@ -13,8 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter binding is initialized
+  await LoggerService().initializeLogger();
   runApp(const MyApp());
 }
 
@@ -33,6 +35,7 @@ class MyApp extends StatelessWidget {
           create: (context) => AuthProvider(
             Provider.of<AuthService>(context, listen: false),
             Provider.of<FlutterSecureStorage>(context, listen: false),
+
           ),
         ),
         // Provide the AuthViewModel to the app

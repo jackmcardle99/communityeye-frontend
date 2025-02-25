@@ -108,19 +108,15 @@ void calculateClusters(double zoomLevel) {
     final totalLon = _markers.fold(0.0, (sum, marker) => sum + marker.point.longitude);
     final center = LatLng(totalLat / _markers.length, totalLon / _markers.length);
     _clusters = [MarkerCluster(center, _markers.length)];
-    print('Zoom Level: $zoomLevel, Cluster Size: Single Cluster');
+    
   } else if (zoomLevel < zoomThresholds[1]) {
-    clusterSize = 0.5; // Split into smaller clusters
-    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
+    clusterSize = 0.5; // Split into smaller clusters    
   } else if (zoomLevel < zoomThresholds[2]) {
-    clusterSize = 0.25; // Further split into smaller clusters
-    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
+    clusterSize = 0.25; // Further split into smaller clusters    
   } else if (zoomLevel < zoomThresholds[3]) {
-    clusterSize = 0.125; // Even smaller clusters
-    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
+    clusterSize = 0.125; // Even smaller clusters    
   } else  {
     clusterSize = 0.0625; // Smallest clusters
-    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
   } 
 
   if (zoomLevel >= zoomThresholds[0]) {

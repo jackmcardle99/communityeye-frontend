@@ -7,7 +7,7 @@ class UserRepository {
   UserRepository(this._authProvider);
 
   Future<User?> fetchUserProfile() async {
-    int? userId = _authProvider.getCurrentUserId();
+    int? userId = _authProvider.userId;
     if (userId != null) {
       return await _authProvider.fetchUser(userId);
     }
