@@ -9,6 +9,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 import 'package:native_exif/native_exif.dart';
+import 'package:communityeye_frontend/data/services/logger_service.dart';
 
 class ReportsViewModel extends ChangeNotifier {
   final ReportRepository _reportRepository;
@@ -60,8 +61,6 @@ class ReportsViewModel extends ChangeNotifier {
 
   ReportsViewModel(this._reportRepository, this._authProvider);
 
-
-  
   Future<void> fetchReports() async {
     _isLoading = true;
     _errorMessage = '';
@@ -69,7 +68,7 @@ class ReportsViewModel extends ChangeNotifier {
 
     try {
       _reports = await _reportRepository.fetchReports();
-      
+
       _markers = _reports.map((report) {
         final lat = report.geolocation.geometry.coordinates[0];
         final lon = report.geolocation.geometry.coordinates[1];
@@ -80,7 +79,7 @@ class ReportsViewModel extends ChangeNotifier {
           child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
         );
       }).toList();
-      
+
       _heatmapData = _reports.map((report) {
         final lat = report.geolocation.geometry.coordinates[0];
         final lon = report.geolocation.geometry.coordinates[1];
@@ -96,61 +95,58 @@ class ReportsViewModel extends ChangeNotifier {
     }
   }
 
-void calculateClusters(double zoomLevel) {
-  // Define zoom level thresholds for splitting clusters
-  const zoomThresholds = [7, 8.5, 10.0, 11.0];
-  double clusterSize = 0.1; // Default cluster size
+  void calculateClusters(double zoomLevel) {
+    const zoomThresholds = [7, 8.5, 10.0, 11.0];
+    double clusterSize = 0.1;
 
-  // Determine cluster size based on zoom level thresholds
-  if (zoomLevel < zoomThresholds[0]) {
-    // Single cluster at the top level
-    final totalLat = _markers.fold(0.0, (sum, marker) => sum + marker.point.latitude);
-    final totalLon = _markers.fold(0.0, (sum, marker) => sum + marker.point.longitude);
-    final center = LatLng(totalLat / _markers.length, totalLon / _markers.length);
-    _clusters = [MarkerCluster(center, _markers.length)];
-    print('Zoom Level: $zoomLevel, Cluster Size: Single Cluster');
-  } else if (zoomLevel < zoomThresholds[1]) {
-    clusterSize = 0.5; // Split into smaller clusters
-    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
-  } else if (zoomLevel < zoomThresholds[2]) {
-    clusterSize = 0.25; // Further split into smaller clusters
-    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
-  } else if (zoomLevel < zoomThresholds[3]) {
-    clusterSize = 0.125; // Even smaller clusters
-    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
-  } else  {
-    clusterSize = 0.0625; // Smallest clusters
-    print('Zoom Level: $zoomLevel, Cluster Size: $clusterSize');
-  } 
-
-  if (zoomLevel >= zoomThresholds[0]) {
-    final clusters = <MarkerCluster>[];
-    final clusterMap = <String, List<LatLng>>{};
-
-    for (final marker in _markers) {
-      final lat = (marker.point.latitude / clusterSize).floor() * clusterSize;
-      final lon = (marker.point.longitude / clusterSize).floor() * clusterSize;
-      final key = '$lat-$lon';
-
-      if (clusterMap.containsKey(key)) {
-        clusterMap[key]!.add(marker.point);
-      } else {
-        clusterMap[key] = [marker.point];
-      }
+    // determining cluster size based on zoom level thresholds
+    if (zoomLevel < zoomThresholds[0]) {
+      final totalLat =
+          _markers.fold(0.0, (sum, marker) => sum + marker.point.latitude);
+      final totalLon =
+          _markers.fold(0.0, (sum, marker) => sum + marker.point.longitude);
+      final center =
+          LatLng(totalLat / _markers.length, totalLon / _markers.length);
+      _clusters = [MarkerCluster(center, _markers.length)];
+    } else if (zoomLevel < zoomThresholds[1]) {
+      clusterSize = 0.5;
+    } else if (zoomLevel < zoomThresholds[2]) {
+      clusterSize = 0.25;
+    } else if (zoomLevel < zoomThresholds[3]) {
+      clusterSize = 0.125;
+    } else {
+      clusterSize = 0.0625;
     }
 
-    clusterMap.forEach((key, points) {
-      // Use the first point as the cluster center to maintain consistency
-      final center = points.first;
-      clusters.add(MarkerCluster(center, points.length));
-    });
+    // if zoom level is higher than any of the thresholds, then clusters disappear and the markers are displayed
+    if (zoomLevel >= zoomThresholds[0]) {
+      final clusters = <MarkerCluster>[];
+      final clusterMap = <String, List<LatLng>>{};
 
-    _clusters = clusters;
+      for (final marker in _markers) {
+        final lat = (marker.point.latitude / clusterSize).floor() * clusterSize;
+        final lon =
+            (marker.point.longitude / clusterSize).floor() * clusterSize;
+        final key = '$lat-$lon';
+
+        if (clusterMap.containsKey(key)) {
+          clusterMap[key]!.add(marker.point);
+        } else {
+          clusterMap[key] = [marker.point];
+        }
+      }
+
+      clusterMap.forEach((key, points) {
+        // use the first point as the cluster centerfor consistency across zoom thresholds
+        final center = points.first;
+        clusters.add(MarkerCluster(center, points.length));
+      });
+
+      _clusters = clusters;
+    }
+
+    notifyListeners();
   }
-
-  notifyListeners();
-}
-
 
   void setDescription(String value) {
     _description = value;
@@ -184,9 +180,11 @@ void calculateClusters(double zoomLevel) {
             await exif.close();
           } catch (e) {
             _errorMessage = "Failed to write location to image.";
+            LoggerService.logger.e('Failed to write location to image: $e');
           }
         } else {
           _errorMessage = "Location access denied or unavailable.";
+          LoggerService.logger.e('Location access denied or unavailable.');
         }
       }
 
@@ -252,11 +250,10 @@ void calculateClusters(double zoomLevel) {
 
   void toggleHeatmap() {
     _showHeatmap = !_showHeatmap;
+    LoggerService.logger.i('Heatmap toggled. Show Heatmap: $_showHeatmap');
     notifyListeners();
   }
 }
-
-
 
 class MarkerCluster {
   final LatLng center;

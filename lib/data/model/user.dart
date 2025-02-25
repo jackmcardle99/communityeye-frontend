@@ -22,7 +22,8 @@ class User {
       email: json['email_address'],
       mobileNumber: json['mobile_number'],
       city: json['city'],
-      password: json['password'] as String?, // nullable, since password shouldn't returned in API call
+      password: json['password']
+          as String?, // nullable, since password shouldn't returned in API call
     );
   }
 

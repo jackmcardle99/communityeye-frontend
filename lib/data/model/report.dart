@@ -21,7 +21,6 @@ class Report {
     required this.createdAt,
   });
 
-  // Factory constructor for creating a new Report instance from a map.
   factory Report.fromJson(Map<String, dynamic> json) {
     return Report(
       id: json['_id'],
@@ -36,7 +35,6 @@ class Report {
     );
   }
 
-  // Method to convert a Report instance into a map.
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
