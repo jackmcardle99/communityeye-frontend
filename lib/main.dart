@@ -50,6 +50,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => ReportRepository(
             Provider.of<ReportService>(context, listen: false),
+            Provider.of<AuthProvider>(context, listen: false)
           ),
         ),
         // Provide the ReportsViewModel to the app

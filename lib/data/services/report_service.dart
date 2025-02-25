@@ -7,10 +7,12 @@ import 'package:communityeye_frontend/data/services/logger_service.dart';
 class ReportService {
   final String baseUrl = 'http://192.168.0.143:5000/api/v1/';
 
-  Future<List<Report>> fetchReports() async {
+  Future<List<Report>> fetchReports(String token) async {
     try {
-      final response = await http.get(Uri.parse('${baseUrl}reports'));
-      LoggerService.logger.i('API Call: GET ${baseUrl}reports - Status Code: ${response.statusCode} ${response.reasonPhrase} ${response.body}');
+      final response = await http.get(Uri.parse('${baseUrl}reports'), headers: {
+        "x-access-token": token,
+      }, );
+      LoggerService.logger.i('API Call: GET ${baseUrl}reports - Status Code: ${response.statusCode} ${response.reasonPhrase}');
 
       if (response.statusCode == 200) {
         List jsonResponse = json.decode(response.body);
@@ -23,9 +25,11 @@ class ReportService {
     }
   }
 
-  Future<List<Report>> fetchReportsByUserId(int userId) async {
+  Future<List<Report>> fetchReportsByUserId(int userId, String token) async {
     try {
-      final response = await http.get(Uri.parse('${baseUrl}reports/user/$userId'));
+      final response = await http.get(Uri.parse('${baseUrl}reports/user/$userId'), headers: {
+        "x-access-token": token,
+      }, );
       LoggerService.logger.i('API Call: GET ${baseUrl}reports/user/$userId - Status Code: ${response.statusCode} ${response.reasonPhrase} ${response.body}');
 
       if (response.statusCode == 200) {
@@ -39,13 +43,14 @@ class ReportService {
     }
   }
 
-  Future<String> createReport(String description, String category, File image, {required int userId}) async {
+  Future<String> createReport(String description, String category, File image, String token, {required int userId}) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse('${baseUrl}reports'));
       request.fields['description'] = description;
       request.fields['category'] = category;
       request.fields['userID'] = userId.toString();
       request.files.add(await http.MultipartFile.fromPath('image', image.path));
+      request.headers['x-access-token'] = token;
 
       var response = await request.send();
       LoggerService.logger.i('API Call: POST ${baseUrl}reports - Status Code: ${response.statusCode} ${response.reasonPhrase} ${response.body}');
@@ -67,9 +72,11 @@ class ReportService {
     }
   }
 
-  Future<void> deleteReport(String reportId) async {
+  Future<void> deleteReport(String reportId, String token) async {
     try {
-      final response = await http.delete(Uri.parse('${baseUrl}reports/$reportId'));
+      final response = await http.delete(Uri.parse('${baseUrl}reports/$reportId'), headers: {
+        "x-access-token": token,
+      }, );
       LoggerService.logger.i('API Call: DELETE ${baseUrl}reports/$reportId - Status Code: ${response.statusCode} ${response.reasonPhrase} ${response.body}');
 
       if (response.statusCode != 204) {
