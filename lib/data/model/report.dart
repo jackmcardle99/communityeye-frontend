@@ -7,6 +7,7 @@ class Report {
   final String authority;
   final ImageData image;
   final bool resolved;
+  int upvoteCount;
   final int createdAt;
 
   Report({
@@ -18,6 +19,7 @@ class Report {
     required this.authority,
     required this.image,
     required this.resolved,
+    required this.upvoteCount,
     required this.createdAt,
   });
 
@@ -31,6 +33,7 @@ class Report {
       authority: json['authority'],
       image: ImageData.fromJson(json['image']),
       resolved: json['resolved'],
+      upvoteCount: json['upvote_count'],
       createdAt: json['created_at'],
     );
   }
@@ -45,6 +48,7 @@ class Report {
       'authority': authority,
       'image': image.toJson(),
       'resolved': resolved,
+      'upvote_count': upvoteCount,
       'created_at': createdAt,
     };
   }

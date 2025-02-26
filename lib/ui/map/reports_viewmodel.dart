@@ -22,8 +22,10 @@ class ReportsViewModel extends ChangeNotifier {
   bool _showHeatmap = false;
   bool _isLoading = true;
   bool _isSubmissionSuccessful = false;
+  bool _isUpvoteSuccessful = false;
   String _errorMessage = '';
 
+  
   // Form-related state
   String? _description;
   String? _selectedCategory;
@@ -53,6 +55,7 @@ class ReportsViewModel extends ChangeNotifier {
   bool get showHeatmap => _showHeatmap;
   bool get isLoading => _isLoading;
   bool get isSubmissionSuccessful => _isSubmissionSuccessful;
+  bool get isUpvoteSuccessful => _isUpvoteSuccessful;
   String get errorMessage => _errorMessage;
   String? get description => _description;
   String? get selectedCategory => _selectedCategory;
@@ -163,34 +166,37 @@ class ReportsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> pickImageWithLocation(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source);
-    if (pickedFile != null) {
-      _image = File(pickedFile.path);
+ Future<void> pickImageWithLocation(ImageSource source) async {
+  final pickedFile = await _picker.pickImage(source: source);
+  if (pickedFile != null) {
+    _image = File(pickedFile.path);
+    print('Image picked: ${_image?.path}'); // Debug print
 
-      if (source == ImageSource.camera) {
-        final location = await _getCurrentLocation();
-        if (location != null) {
-          try {
-            final exif = await Exif.fromPath(pickedFile.path);
-            await exif.writeAttributes({
-              'GPSLatitude': location.latitude.toString(),
-              'GPSLongitude': location.longitude.toString(),
-            });
-            await exif.close();
-          } catch (e) {
-            _errorMessage = "Failed to write location to image.";
-            LoggerService.logger.e('Failed to write location to image: $e');
-          }
-        } else {
-          _errorMessage = "Location access denied or unavailable.";
-          LoggerService.logger.e('Location access denied or unavailable.');
+    if (source == ImageSource.camera) {
+      final location = await _getCurrentLocation();
+      if (location != null) {
+        try {
+          final exif = await Exif.fromPath(pickedFile.path);
+          await exif.writeAttributes({
+            'GPSLatitude': location.latitude.toString(),
+            'GPSLongitude': location.longitude.toString(),
+          });
+          await exif.close();
+        } catch (e) {
+          _errorMessage = "Failed to write location to image.";
+          LoggerService.logger.e('Failed to write location to image: $e');
         }
+      } else {
+        _errorMessage = "Location access denied or unavailable.";
+        LoggerService.logger.e('Location access denied or unavailable.');
       }
-
-      notifyListeners();
     }
+
+    notifyListeners();
+    print('Listeners notified'); // Debug print
   }
+}
+
 
   Future<LocationData?> _getCurrentLocation() async {
     final location = Location();
@@ -246,6 +252,27 @@ class ReportsViewModel extends ChangeNotifier {
       _errorMessage = e.toString();
       notifyListeners();
     }
+  }
+
+  Future<void> upvoteReport(String reportId) async {
+    _isUpvoteSuccessful = false;
+    notifyListeners();
+
+    try {
+      await _reportRepository.upvoteReport(reportId);
+      _isUpvoteSuccessful = true;
+      
+      // increment the upvote count locally to prevent recalling fetch reports
+      final reportIndex = _reports.indexWhere((report) => report.id == reportId);
+      if (reportIndex != -1) {
+        _reports[reportIndex].upvoteCount += 1;
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+    }
+
+    notifyListeners();
   }
 
   void toggleHeatmap() {

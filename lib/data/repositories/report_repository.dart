@@ -62,4 +62,15 @@ class ReportRepository with ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> upvoteReport(String reportId) async {
+    try {
+      String? token = await _authProvider.getToken();
+      await _reportService.upvoteReport(reportId, token!);
+      LoggerService.logger.i('Report ID: $reportId upvoted successfully.');
+    } catch (e) {
+      LoggerService.logger.e('Error upvoting report ID: $reportId - Error: $e');
+      rethrow;
+    }
+  }
 }
