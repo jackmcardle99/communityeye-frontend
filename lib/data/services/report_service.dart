@@ -86,6 +86,24 @@ class ReportService {
       rethrow;
     }
   }
+
+  Future<void> upvoteReport(String reportId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${baseUrl}reports/$reportId/upvote'),
+        headers: {
+          "x-access-token": token,
+        },
+      );
+      LoggerService.logger.i('API Call: POST ${baseUrl}reports/$reportId/upvote - Status Code: ${response.statusCode} ${response.reasonPhrase}');
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to upvote report');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 // needed for multipart request 

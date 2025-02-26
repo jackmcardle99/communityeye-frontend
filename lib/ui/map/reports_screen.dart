@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:communityeye_frontend/data/providers/auth_provider.dart';
 import 'package:communityeye_frontend/data/repositories/report_repository.dart';
 import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
+import 'package:communityeye_frontend/ui/widgets/error_message.dart';
+import 'package:communityeye_frontend/ui/widgets/success_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
@@ -33,91 +35,115 @@ class ReportsScreenState extends State<ReportsScreen> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.85,
-          minChildSize: 0.25,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Image.network(
-                      report.image.url,
-                      fit: BoxFit.contain,
-                      loadingBuilder: (BuildContext context, Widget child,
-                          ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.85,
+              minChildSize: 0.25,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (context, scrollController) {
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.network(
+                          report.image.url,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (BuildContext context, Widget child,
+                              ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Description: ',
+                          style: TextStyle(
+                              fontSize: 16.0, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          report.description,
+                          style: const TextStyle(fontSize: 16.0),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Category: ',
+                          style: TextStyle(
+                              fontSize: 16.0, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          report.category,
+                          style: const TextStyle(fontSize: 16.0),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Authority: ',
+                          style: TextStyle(
+                              fontSize: 16.0, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          report.authority,
+                          style: const TextStyle(fontSize: 16.0),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Created At: ',
+                          style: TextStyle(
+                              fontSize: 16.0, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          DateFormat('dd-MM-yyyy').format(
+                              DateTime.fromMillisecondsSinceEpoch(
+                                  report.createdAt * 1000)),
+                          style: const TextStyle(fontSize: 16.0),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Status: ',
+                          style: TextStyle(
+                              fontSize: 16.0, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          report.resolved ? 'Resolved' : 'In progress',
+                          style: const TextStyle(fontSize: 16.0),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.thumb_up),
+                              onPressed: () async {
+                                await viewModel.upvoteReport(report.id);
+                                if (viewModel.isUpvoteSuccessful) {
+                                  TopSnackBarSuccess.show(context, "Upvote successful!");
+                                  setState(() {});
+                                } else {
+                                  TopSnackBarError.show(context, 'Already upvoted!');
+                                }
+                              },
+                            ),
+                            Text(
+                              '${report.upvoteCount ?? 0}', 
+                              style: const TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Description: ',
-                      style: TextStyle(
-                          fontSize: 16.0, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      report.description,
-                      style: const TextStyle(fontSize: 16.0),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Category: ',
-                      style: TextStyle(
-                          fontSize: 16.0, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      report.category,
-                      style: const TextStyle(fontSize: 16.0),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Authority: ',
-                      style: TextStyle(
-                          fontSize: 16.0, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      report.authority,
-                      style: const TextStyle(fontSize: 16.0),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Created At: ',
-                      style: TextStyle(
-                          fontSize: 16.0, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      DateFormat('dd-MM-yyyy').format(
-                          DateTime.fromMillisecondsSinceEpoch(
-                              report.createdAt * 1000)),
-                      style: const TextStyle(fontSize: 16.0),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Status: ',
-                      style: TextStyle(
-                          fontSize: 16.0, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      report.resolved ? 'Resolved' : 'In progress',
-                      style: const TextStyle(fontSize: 16.0),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
           },
         );
@@ -143,7 +169,7 @@ class ReportsScreenState extends State<ReportsScreen> {
           builder: (context, viewModel, child) {
             if (viewModel.isLoading) {
               return const Center(child: CircularProgressIndicator());
-            } else if (viewModel.errorMessage.isNotEmpty) {
+            } else if (viewModel.errorMessage.isNotEmpty && viewModel.reports.isEmpty) {
               return Center(child: Text('Error: ${viewModel.errorMessage}'));
             } else {
               return Stack(
@@ -267,71 +293,71 @@ class AddReportForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.read<ReportsViewModel>();
-
-    return Padding(
-      padding: MediaQuery.of(context).viewInsets,
-      child: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: viewModel.descriptionController,
-                onChanged: viewModel.setDescription,
-                maxLength: 300,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              DropdownButtonFormField<String>(
-                value: viewModel.selectedCategory,
-                decoration: const InputDecoration(labelText: 'Category'),
-                items: viewModel.categories.map((category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: viewModel.setCategory,
-              ),
-              const SizedBox(height: 16.0),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.camera_alt),
-                    onPressed: () =>
-                        viewModel.pickImageWithLocation(ImageSource.camera),
+    return Consumer<ReportsViewModel>(
+      builder: (context, viewModel, child) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    controller: viewModel.descriptionController,
+                    onChanged: viewModel.setDescription,
+                    maxLength: 300,
+                    decoration: const InputDecoration(labelText: 'Description'),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.photo_library),
-                    onPressed: () =>
-                        viewModel.pickImageWithLocation(ImageSource.gallery),
+                  DropdownButtonFormField<String>(
+                    value: viewModel.selectedCategory,
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    items: viewModel.categories.map((category) {
+                      return DropdownMenuItem<String>(
+                        value: category,
+                        child: Text(category),
+                      );
+                    }).toList(),
+                    onChanged: viewModel.setCategory,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.camera_alt),
+                        onPressed: () =>
+                            viewModel.pickImageWithLocation(ImageSource.camera),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.photo_library),
+                        onPressed: () =>
+                            viewModel.pickImageWithLocation(ImageSource.gallery),
+                      ),
+                    ],
+                  ),
+                  if (viewModel.image != null)
+                    Image.file(viewModel.image!, height: 200.0, width: 200.0),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: viewModel.isFormValid()
+                        ? () async {
+                            await viewModel.submitReport();
+                            if (viewModel.isSubmissionSuccessful) {
+                              Navigator.of(context).pop();
+                              TopSnackBarSuccess.show(context, "Report submitted!");
+                            } else {
+                              TopSnackBarError.show(context, viewModel.errorMessage);
+                            }
+                          }
+                        : null,
+                    child: const Text('Submit'),
                   ),
                 ],
               ),
-              if (viewModel.image != null)
-                Image.file(viewModel.image!, height: 200.0, width: 200.0),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: viewModel.isFormValid()
-                    ? () async {
-                        await viewModel.submitReport();
-                        if (viewModel.isSubmissionSuccessful) {
-                          Navigator.of(context).pop();
-                        }
-                      }
-                    : null,
-                child: const Text('Submit'),
-              ),
-              if (viewModel.errorMessage.isNotEmpty)
-                Text(
-                  viewModel.errorMessage,
-                  style: const TextStyle(color: Colors.red),
-                ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
