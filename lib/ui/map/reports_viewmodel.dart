@@ -24,9 +24,9 @@ class ReportsViewModel extends ChangeNotifier {
   bool _isSubmissionSuccessful = false;
   bool _isUpvoteSuccessful = false;
   String _errorMessage = '';
+  String? _selectedFilterCategory;
 
-  
-  // Form-related state
+  // Form state
   String? _description;
   String? _selectedCategory;
   File? _image;
@@ -61,6 +61,7 @@ class ReportsViewModel extends ChangeNotifier {
   String? get selectedCategory => _selectedCategory;
   File? get image => _image;
   List<String> get categories => _categories;
+  String? get selectedFilterCategory => _selectedFilterCategory;
 
   ReportsViewModel(this._reportRepository, this._authProvider);
 
@@ -71,6 +72,8 @@ class ReportsViewModel extends ChangeNotifier {
 
     try {
       _reports = await _reportRepository.fetchReports();
+
+      _reports = _reports.where((report) => !report.resolved).toList();
 
       _markers = _reports.map((report) {
         final lat = report.geolocation.geometry.coordinates[0];
@@ -99,57 +102,74 @@ class ReportsViewModel extends ChangeNotifier {
   }
 
   void calculateClusters(double zoomLevel) {
-    const zoomThresholds = [7, 8.5, 10.0, 11.0];
-    double clusterSize = 0.1;
+  const zoomThresholds = [7, 8.5, 10.0, 11.0];
+  double clusterSize = 0.1;
 
-    // determining cluster size based on zoom level thresholds
-    if (zoomLevel < zoomThresholds[0]) {
-      final totalLat =
-          _markers.fold(0.0, (sum, marker) => sum + marker.point.latitude);
-      final totalLon =
-          _markers.fold(0.0, (sum, marker) => sum + marker.point.longitude);
-      final center =
-          LatLng(totalLat / _markers.length, totalLon / _markers.length);
-      _clusters = [MarkerCluster(center, _markers.length)];
-    } else if (zoomLevel < zoomThresholds[1]) {
-      clusterSize = 0.5;
-    } else if (zoomLevel < zoomThresholds[2]) {
-      clusterSize = 0.25;
-    } else if (zoomLevel < zoomThresholds[3]) {
-      clusterSize = 0.125;
-    } else {
-      clusterSize = 0.0625;
-    }
+  // use filtered reports if a specific category is selected
+  final reportsToCluster = _selectedFilterCategory == null || _selectedFilterCategory!.isEmpty
+      ? _reports
+      : filteredReports;
 
-    // if zoom level is higher than any of the thresholds, then clusters disappear and the markers are displayed
-    if (zoomLevel >= zoomThresholds[0]) {
-      final clusters = <MarkerCluster>[];
-      final clusterMap = <String, List<LatLng>>{};
-
-      for (final marker in _markers) {
-        final lat = (marker.point.latitude / clusterSize).floor() * clusterSize;
-        final lon =
-            (marker.point.longitude / clusterSize).floor() * clusterSize;
-        final key = '$lat-$lon';
-
-        if (clusterMap.containsKey(key)) {
-          clusterMap[key]!.add(marker.point);
-        } else {
-          clusterMap[key] = [marker.point];
-        }
-      }
-
-      clusterMap.forEach((key, points) {
-        // use the first point as the cluster centerfor consistency across zoom thresholds
-        final center = points.first;
-        clusters.add(MarkerCluster(center, points.length));
-      });
-
-      _clusters = clusters;
-    }
-
+  // hide clusters if less than 100 reports
+  if (reportsToCluster.length < 100) {
+    _clusters.clear();
     notifyListeners();
+    return;
   }
+
+  // determine cluster size based on zoom level thresholds
+  if (zoomLevel < zoomThresholds[0]) {
+    final totalLat = reportsToCluster.fold(0.0, (sum, report) {
+      final lat = report.geolocation.geometry.coordinates[0];
+      return sum + lat;
+    });
+    final totalLon = reportsToCluster.fold(0.0, (sum, report) {
+      final lon = report.geolocation.geometry.coordinates[1];
+      return sum + lon;
+    });
+    final center = LatLng(totalLat / reportsToCluster.length, totalLon / reportsToCluster.length);
+    _clusters = [MarkerCluster(center, reportsToCluster.length)];
+  } else if (zoomLevel < zoomThresholds[1]) {
+    clusterSize = 0.5;
+  } else if (zoomLevel < zoomThresholds[2]) {
+    clusterSize = 0.25;
+  } else if (zoomLevel < zoomThresholds[3]) {
+    clusterSize = 0.125;
+  } else {
+    clusterSize = 0.0625;
+  }
+
+  // if zoom level is higher than any of the thresholds, then clusters disappear and the markers are displayed
+  if (zoomLevel >= zoomThresholds[0]) {
+    final clusters = <MarkerCluster>[];
+    final clusterMap = <String, List<LatLng>>{};
+
+    for (final report in reportsToCluster) {
+      final lat = report.geolocation.geometry.coordinates[0];
+      final lon = report.geolocation.geometry.coordinates[1];
+      final clusteredLat = (lat / clusterSize).floor() * clusterSize;
+      final clusteredLon = (lon / clusterSize).floor() * clusterSize;
+      final key = '$clusteredLat-$clusteredLon';
+
+      if (clusterMap.containsKey(key)) {
+        clusterMap[key]!.add(LatLng(lat, lon));
+      } else {
+        clusterMap[key] = [LatLng(lat, lon)];
+      }
+    }
+
+    clusterMap.forEach((key, points) {
+      // use the first point as the cluster center for consistency across zoom thresholds
+      final center = points.first;
+      clusters.add(MarkerCluster(center, points.length));
+    });
+
+    _clusters = clusters;
+  }
+
+  notifyListeners();
+}
+
 
   void setDescription(String value) {
     _description = value;
@@ -170,7 +190,6 @@ class ReportsViewModel extends ChangeNotifier {
   final pickedFile = await _picker.pickImage(source: source);
   if (pickedFile != null) {
     _image = File(pickedFile.path);
-    print('Image picked: ${_image?.path}'); // Debug print
 
     if (source == ImageSource.camera) {
       final location = await _getCurrentLocation();
@@ -193,7 +212,6 @@ class ReportsViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
-    print('Listeners notified'); // Debug print
   }
 }
 
@@ -279,6 +297,19 @@ class ReportsViewModel extends ChangeNotifier {
     _showHeatmap = !_showHeatmap;
     LoggerService.logger.i('Heatmap toggled. Show Heatmap: $_showHeatmap');
     notifyListeners();
+  }
+
+  void setFilterCategory(String? category) {
+    _selectedFilterCategory = category;
+    notifyListeners();
+  }
+
+  List<Report> get filteredReports {
+    if (_selectedFilterCategory == null || _selectedFilterCategory!.isEmpty) {
+      return _reports;
+    }
+    final filtered = _reports.where((report) => report.category == _selectedFilterCategory).toList();
+    return filtered;
   }
 }
 
