@@ -89,7 +89,9 @@ class ReportsViewModel extends ChangeNotifier {
       _heatmapData = _reports.map((report) {
         final lat = report.geolocation.geometry.coordinates[0];
         final lon = report.geolocation.geometry.coordinates[1];
-        return WeightedLatLng(LatLng(lat, lon), 1);
+        // no. of upvotes for each report contributes to density
+        final weight = report.upvoteCount.toDouble();
+        return WeightedLatLng(LatLng(lat, lon), (weight * 100));
       }).toList();
 
       calculateClusters(8.0);
