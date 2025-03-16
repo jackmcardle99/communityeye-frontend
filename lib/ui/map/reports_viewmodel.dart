@@ -10,6 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:communityeye_frontend/data/services/logger_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class ReportsViewModel extends ChangeNotifier {
   final ReportRepository _reportRepository;
@@ -25,6 +27,11 @@ class ReportsViewModel extends ChangeNotifier {
   bool _isUpvoteSuccessful = false;
   String _errorMessage = '';
   String? _selectedFilterCategory;
+
+  // Cache keys
+  static const String _lastFetchTimeKey = 'lastFetchTime';
+  static const String _cachedReportsKey = 'cachedReports';
+  static const Duration _cacheDuration = Duration(minutes: 5);
 
   // Form state
   String? _description;
@@ -63,36 +70,54 @@ class ReportsViewModel extends ChangeNotifier {
   List<String> get categories => _categories;
   String? get selectedFilterCategory => _selectedFilterCategory;
 
-  ReportsViewModel(this._reportRepository, this._authProvider);
+  ReportsViewModel(this._reportRepository, this._authProvider) {
+    _loadCachedData();
+  }
+
+  Future<void> _loadCachedData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? lastFetchTimestamp = prefs.getInt(_lastFetchTimeKey);
+    String? cachedReports = prefs.getString(_cachedReportsKey);
+
+    if (lastFetchTimestamp != null && cachedReports != null) {
+      DateTime lastFetchTime = DateTime.fromMillisecondsSinceEpoch(lastFetchTimestamp);
+      
+      if (DateTime.now().difference(lastFetchTime) < _cacheDuration) {
+        List<dynamic> jsonList = jsonDecode(cachedReports);
+        _reports = jsonList.map((json) => Report.fromJson(json)).toList();
+        _isLoading = false;
+        _updateMarkersAndClusters();
+        notifyListeners();
+      }
+    }
+  }
 
   Future<void> fetchReports() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? lastFetchTimestamp = prefs.getInt(_lastFetchTimeKey);
+
+    if (lastFetchTimestamp != null) {
+      DateTime lastFetchTime = DateTime.fromMillisecondsSinceEpoch(lastFetchTimestamp);
+      // if cache is still valid
+      if (DateTime.now().difference(lastFetchTime) < _cacheDuration) {
+        return;
+      }
+    }
+
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
 
     try {
       _reports = await _reportRepository.fetchReports();
-
       _reports = _reports.where((report) => !report.resolved).toList();
 
-      _markers = _reports.map((report) {
-        final lat = report.geolocation.geometry.coordinates[0];
-        final lon = report.geolocation.geometry.coordinates[1];
-        return Marker(
-          width: 10.0,
-          height: 10.0,
-          point: LatLng(lat, lon),
-          child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
-        );
-      }).toList();
+      _updateMarkersAndClusters();
 
-      _heatmapData = _reports.map((report) {
-        final lat = report.geolocation.geometry.coordinates[0];
-        final lon = report.geolocation.geometry.coordinates[1];
-        return WeightedLatLng(LatLng(lat, lon), 1);
-      }).toList();
-
-      calculateClusters(8.0);
+      // Store the reports and timestamp
+      String reportsJson = jsonEncode(_reports);
+      await prefs.setString(_cachedReportsKey, reportsJson);
+      await prefs.setInt(_lastFetchTimeKey, DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -101,75 +126,95 @@ class ReportsViewModel extends ChangeNotifier {
     }
   }
 
+  void _updateMarkersAndClusters() {
+    _markers = _reports.map((report) {
+      final lat = report.geolocation.geometry.coordinates[0];
+      final lon = report.geolocation.geometry.coordinates[1];
+      return Marker(
+        width: 10.0,
+        height: 10.0,
+        point: LatLng(lat, lon),
+        child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+      );
+    }).toList();
+
+    _heatmapData = _reports.map((report) {
+      final lat = report.geolocation.geometry.coordinates[0];
+      final lon = report.geolocation.geometry.coordinates[1];
+      return WeightedLatLng(LatLng(lat, lon), 1);
+    }).toList();
+
+    calculateClusters(8.0);
+  }
+
   void calculateClusters(double zoomLevel) {
-  const zoomThresholds = [7, 8.5, 10.0, 11.0];
-  double clusterSize = 0.1;
+    const zoomThresholds = [7, 8.5, 10.0, 11.0];
+    double clusterSize = 0.1;
 
-  // use filtered reports if a specific category is selected
-  final reportsToCluster = _selectedFilterCategory == null || _selectedFilterCategory!.isEmpty
-      ? _reports
-      : filteredReports;
+    // use filtered reports if a specific category is selected
+    final reportsToCluster = _selectedFilterCategory == null || _selectedFilterCategory!.isEmpty
+        ? _reports
+        : filteredReports;
 
-  // hide clusters if less than 100 reports
-  if (reportsToCluster.length < 100) {
-    _clusters.clear();
-    notifyListeners();
-    return;
-  }
-
-  // determine cluster size based on zoom level thresholds
-  if (zoomLevel < zoomThresholds[0]) {
-    final totalLat = reportsToCluster.fold(0.0, (sum, report) {
-      final lat = report.geolocation.geometry.coordinates[0];
-      return sum + lat;
-    });
-    final totalLon = reportsToCluster.fold(0.0, (sum, report) {
-      final lon = report.geolocation.geometry.coordinates[1];
-      return sum + lon;
-    });
-    final center = LatLng(totalLat / reportsToCluster.length, totalLon / reportsToCluster.length);
-    _clusters = [MarkerCluster(center, reportsToCluster.length)];
-  } else if (zoomLevel < zoomThresholds[1]) {
-    clusterSize = 0.5;
-  } else if (zoomLevel < zoomThresholds[2]) {
-    clusterSize = 0.25;
-  } else if (zoomLevel < zoomThresholds[3]) {
-    clusterSize = 0.125;
-  } else {
-    clusterSize = 0.0625;
-  }
-
-  // if zoom level is higher than any of the thresholds, then clusters disappear and the markers are displayed
-  if (zoomLevel >= zoomThresholds[0]) {
-    final clusters = <MarkerCluster>[];
-    final clusterMap = <String, List<LatLng>>{};
-
-    for (final report in reportsToCluster) {
-      final lat = report.geolocation.geometry.coordinates[0];
-      final lon = report.geolocation.geometry.coordinates[1];
-      final clusteredLat = (lat / clusterSize).floor() * clusterSize;
-      final clusteredLon = (lon / clusterSize).floor() * clusterSize;
-      final key = '$clusteredLat-$clusteredLon';
-
-      if (clusterMap.containsKey(key)) {
-        clusterMap[key]!.add(LatLng(lat, lon));
-      } else {
-        clusterMap[key] = [LatLng(lat, lon)];
-      }
+    // hide clusters if less than 100 reports
+    if (reportsToCluster.length < 100) {
+      _clusters.clear();
+      notifyListeners();
+      return;
     }
 
-    clusterMap.forEach((key, points) {
-      // use the first point as the cluster center for consistency across zoom thresholds
-      final center = points.first;
-      clusters.add(MarkerCluster(center, points.length));
-    });
+    // determine cluster size based on zoom level thresholds
+    if (zoomLevel < zoomThresholds[0]) {
+      final totalLat = reportsToCluster.fold(0.0, (sum, report) {
+        final lat = report.geolocation.geometry.coordinates[0];
+        return sum + lat;
+      });
+      final totalLon = reportsToCluster.fold(0.0, (sum, report) {
+        final lon = report.geolocation.geometry.coordinates[1];
+        return sum + lon;
+      });
+      final center = LatLng(totalLat / reportsToCluster.length, totalLon / reportsToCluster.length);
+      _clusters = [MarkerCluster(center, reportsToCluster.length)];
+    } else if (zoomLevel < zoomThresholds[1]) {
+      clusterSize = 0.5;
+    } else if (zoomLevel < zoomThresholds[2]) {
+      clusterSize = 0.25;
+    } else if (zoomLevel < zoomThresholds[3]) {
+      clusterSize = 0.125;
+    } else {
+      clusterSize = 0.0625;
+    }
 
-    _clusters = clusters;
+    // if zoom level is higher than any of the thresholds, then clusters disappear and the markers are displayed
+    if (zoomLevel >= zoomThresholds[0]) {
+      final clusters = <MarkerCluster>[];
+      final clusterMap = <String, List<LatLng>>{};
+
+      for (final report in reportsToCluster) {
+        final lat = report.geolocation.geometry.coordinates[0];
+        final lon = report.geolocation.geometry.coordinates[1];
+        final clusteredLat = (lat / clusterSize).floor() * clusterSize;
+        final clusteredLon = (lon / clusterSize).floor() * clusterSize;
+        final key = '$clusteredLat-$clusteredLon';
+
+        if (clusterMap.containsKey(key)) {
+          clusterMap[key]!.add(LatLng(lat, lon));
+        } else {
+          clusterMap[key] = [LatLng(lat, lon)];
+        }
+      }
+
+      clusterMap.forEach((key, points) {
+        // use the first point as the cluster center for consistency across zoom thresholds
+        final center = points.first;
+        clusters.add(MarkerCluster(center, points.length));
+      });
+
+      _clusters = clusters;
+    }
+
+    notifyListeners();
   }
-
-  notifyListeners();
-}
-
 
   void setDescription(String value) {
     _description = value;
@@ -186,35 +231,34 @@ class ReportsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
- Future<void> pickImageWithLocation(ImageSource source) async {
-  final pickedFile = await _picker.pickImage(source: source);
-  if (pickedFile != null) {
-    _image = File(pickedFile.path);
+  Future<void> pickImageWithLocation(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(source: source);
+    if (pickedFile != null) {
+      _image = File(pickedFile.path);
 
-    if (source == ImageSource.camera) {
-      final location = await _getCurrentLocation();
-      if (location != null) {
-        try {
-          final exif = await Exif.fromPath(pickedFile.path);
-          await exif.writeAttributes({
-            'GPSLatitude': location.latitude.toString(),
-            'GPSLongitude': location.longitude.toString(),
-          });
-          await exif.close();
-        } catch (e) {
-          _errorMessage = "Failed to write location to image.";
-          LoggerService.logger.e('Failed to write location to image: $e');
+      if (source == ImageSource.camera) {
+        final location = await _getCurrentLocation();
+        if (location != null) {
+          try {
+            final exif = await Exif.fromPath(pickedFile.path);
+            await exif.writeAttributes({
+              'GPSLatitude': location.latitude.toString(),
+              'GPSLongitude': location.longitude.toString(),
+            });
+            await exif.close();
+          } catch (e) {
+            _errorMessage = "Failed to write location to image.";
+            LoggerService.logger.e('Failed to write location to image: $e');
+          }
+        } else {
+          _errorMessage = "Location access denied or unavailable.";
+          LoggerService.logger.e('Location access denied or unavailable.');
         }
-      } else {
-        _errorMessage = "Location access denied or unavailable.";
-        LoggerService.logger.e('Location access denied or unavailable.');
       }
+
+      notifyListeners();
     }
-
-    notifyListeners();
   }
-}
-
 
   Future<LocationData?> _getCurrentLocation() async {
     final location = Location();
@@ -265,11 +309,18 @@ class ReportsViewModel extends ChangeNotifier {
       _errorMessage = '';
       descriptionController.clear();
       _isSubmissionSuccessful = true;
+
+      // invalidate cache on new report submission so we can relaod
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_lastFetchTimeKey);
+      await prefs.remove(_cachedReportsKey);
+      // await fetchReports();
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
     }
+    
   }
 
   Future<void> upvoteReport(String reportId) async {
@@ -279,7 +330,7 @@ class ReportsViewModel extends ChangeNotifier {
     try {
       await _reportRepository.upvoteReport(reportId);
       _isUpvoteSuccessful = true;
-      
+
       // increment the upvote count locally to prevent recalling fetch reports
       final reportIndex = _reports.indexWhere((report) => report.id == reportId);
       if (reportIndex != -1) {

@@ -39,6 +39,7 @@ class MyReportsViewModel with ChangeNotifier {
       await _reportRepository.deleteReport(reportId);
 
       reports.removeWhere((report) => report.id == reportId);
+      
       notifyListeners();
       _isLoading = false;
       return true;
