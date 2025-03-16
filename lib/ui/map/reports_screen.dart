@@ -134,7 +134,7 @@ class ReportsScreenState extends State<ReportsScreen> {
                               },
                             ),
                             Text(
-                              '${report.upvoteCount ?? 0}', 
+                              '${report.upvoteCount ?? 0}',
                               style: const TextStyle(fontSize: 16.0),
                             ),
                           ],
@@ -157,136 +157,468 @@ class ReportsScreenState extends State<ReportsScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: ChangeNotifierProvider(
-        create: (context) => ReportsViewModel(
-          Provider.of<ReportRepository>(context, listen: false),
-          Provider.of<AuthProvider>(context, listen: false),
-        )..fetchReports(),
-        child: Consumer<ReportsViewModel>(
-          builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (viewModel.errorMessage.isNotEmpty && viewModel.reports.isEmpty) {
-              return Center(child: Text('Error: ${viewModel.errorMessage}'));
-            } else {
-              return Stack(
-                children: [
-                  FlutterMap(
-                    options: MapOptions(
-                      initialCenter: const LatLng(54.637, -6.671),
-                      initialZoom: _currentZoom,
-                      onPositionChanged: (position, hasGesture) {
-                        setState(() {
-                          _currentZoom = position.zoom;
-                        });
-                        viewModel.calculateClusters(_currentZoom);
-                      },
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: ChangeNotifierProvider(
+      create: (context) => ReportsViewModel(
+        Provider.of<ReportRepository>(context, listen: false),
+        Provider.of<AuthProvider>(context, listen: false),
+      )..fetchReports(),
+      child: Consumer<ReportsViewModel>(
+        builder: (context, viewModel, child) {
+          if (viewModel.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (viewModel.errorMessage.isNotEmpty && viewModel.reports.isEmpty) {
+            return Center(child: Text('Error: ${viewModel.errorMessage}'));
+          } else {
+            return Stack(
+              children: [
+                FlutterMap(
+                  options: MapOptions(
+                    initialCenter: const LatLng(54.637, -6.671),
+                    initialZoom: _currentZoom,
+                    onPositionChanged: (position, hasGesture) {
+                      setState(() {
+                        _currentZoom = position.zoom;
+                      });
+                      viewModel.calculateClusters(_currentZoom);
+                    },
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.app',
                     ),
-                    children: [
-                      TileLayer(
-                        urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.example.app',
-                      ),
-                      if (viewModel.showHeatmap &&
-                          viewModel.heatmapData.isNotEmpty)
-                        HeatMapLayer(
-                          heatMapDataSource: InMemoryHeatMapDataSource(
-                              data: viewModel.heatmapData),
-                          heatMapOptions: HeatMapOptions(
-                            gradient: HeatMapOptions.defaultGradient,
-                            minOpacity: 0.1,
-                          ),
-                          reset: _rebuildStream.stream,
+                    if (viewModel.showHeatmap && viewModel.heatmapData.isNotEmpty)
+                      HeatMapLayer(
+                        heatMapDataSource: InMemoryHeatMapDataSource(data: viewModel.heatmapData),
+                        heatMapOptions: HeatMapOptions(
+                          gradient: HeatMapOptions.defaultGradient,
+                          minOpacity: 0.1,
                         ),
-                      if (_currentZoom < 12)
-                        MarkerLayer(
-                          markers: viewModel.clusters.map((cluster) {
-                            return Marker(
-                              width: 40.0,
-                              height: 40.0,
-                              point: cluster.center,
-                              child: GestureDetector(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue,
-                                    borderRadius: BorderRadius.circular(20.0),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '${cluster.count}',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
+                        reset: _rebuildStream.stream,
+                      ),
+                    // Display clusters only if there are 100 or more reports
+                    if (_currentZoom < 12 && viewModel.filteredReports.length >= 100)
+                      MarkerLayer(
+                        markers: viewModel.clusters.map((cluster) {
+                          return Marker(
+                            width: 40.0,
+                            height: 40.0,
+                            point: cluster.center,
+                            child: GestureDetector(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${cluster.count}',
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        )
-                      else
-                        MarkerLayer(
-                          markers: viewModel.markers.map((marker) {
-                            return Marker(
-                              width: 40.0,
-                              height: 40.0,
-                              point: marker.point,
-                              child: GestureDetector(
-                                onTap: () => _onMarkerTapped(context, marker),
-                                child: const Icon(Icons.location_on,
-                                    color: Colors.red, size: 40.0),
+                            ),
+                          );
+                        }).toList(),
+                      )
+                    else
+                      MarkerLayer(
+                        markers: viewModel.filteredReports.map((report) {
+                          final lat = report.geolocation.geometry.coordinates[0];
+                          final lon = report.geolocation.geometry.coordinates[1];
+                          return Marker(
+                            width: 40.0,
+                            height: 40.0,
+                            point: LatLng(lat, lon),
+                            child: GestureDetector(
+                              onTap: () => _onMarkerTapped(context, Marker(
+                                point: LatLng(lat, lon),
+                                child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+                              )),
+                              child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                  ],
+                ),
+                Positioned(
+                  bottom: 16.0,
+                  right: 16.0,
+                  child: Column(
+                    children: [
+                      FloatingActionButton(
+                        heroTag: "filterCategoryButton",
+                        onPressed: () {},
+                        child: PopupMenuButton<String>(
+                          icon: const Icon(Icons.filter_list),
+                          onSelected: (String value) {
+                            viewModel.setFilterCategory(value);
+                          },
+                          itemBuilder: (BuildContext context) {
+                            return [
+                              const PopupMenuItem<String>(
+                                value: '',
+                                child: Text('All Categories'),
                               ),
-                            );
-                          }).toList(),
+                              ...viewModel.categories.map((category) {
+                                return PopupMenuItem<String>(
+                                  value: category,
+                                  child: Text(category),
+                                );
+                              }).toList(),
+                            ];
+                          },
                         ),
+                      ),
+                      const SizedBox(height: 8.0),
+                      FloatingActionButton(
+                        heroTag: "filterButton",
+                        onPressed: () {
+                          viewModel.toggleHeatmap();
+                        },
+                        child: Icon(viewModel.showHeatmap ? Icons.layers_clear : Icons.layers),
+                      ),
+                      const SizedBox(height: 8.0),
+                      FloatingActionButton(
+                        heroTag: "addButton",
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) {
+                              return ChangeNotifierProvider.value(
+                                value: context.read<ReportsViewModel>(),
+                                child: const AddReportForm(),
+                              );
+                            },
+                          );
+                        },
+                        child: const Icon(Icons.add),
+                      ),
                     ],
                   ),
-                  Positioned(
-                    bottom: 16.0,
-                    right: 16.0,
-                    child: Column(
-                      children: [
-                        FloatingActionButton(
-                          heroTag: "filterButton",
-                          onPressed: () {
-                            viewModel.toggleHeatmap();
-                          },
-                          child: Icon(viewModel.showHeatmap
-                              ? Icons.layers_clear
-                              : Icons.layers),
-                        ),
-                        const SizedBox(height: 8.0),
-                        FloatingActionButton(
-                          heroTag: "addButton",
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              builder: (context) {
-                                return ChangeNotifierProvider.value(
-                                  value: context.read<ReportsViewModel>(),
-                                  child: const AddReportForm(),
-                                );
-                              },
-                            );
-                          },
-                          child: const Icon(Icons.add),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }
-          },
-        ),
+                ),
+              ],
+            );
+          }
+        },
       ),
-    );
-  }
+    ),
+  );
 }
+
+}
+
+
+// class ReportsScreen extends StatefulWidget {
+//   const ReportsScreen({super.key});
+
+//   @override
+//   ReportsScreenState createState() => ReportsScreenState();
+// }
+
+// class ReportsScreenState extends State<ReportsScreen> {
+//   final StreamController<void> _rebuildStream = StreamController.broadcast();
+//   double _currentZoom = 8.0;
+
+//   void _onMarkerTapped(BuildContext context, Marker marker) {
+//     final viewModel = context.read<ReportsViewModel>();
+//     final report = viewModel.reports.firstWhere((report) {
+//       final lat = report.geolocation.geometry.coordinates[0];
+//       final lon = report.geolocation.geometry.coordinates[1];
+//       return marker.point.latitude == lat && marker.point.longitude == lon;
+//     });
+
+//     showModalBottomSheet(
+//       context: context,
+//       isScrollControlled: true,
+//       builder: (context) {
+//         return StatefulBuilder(
+//           builder: (context, setState) {
+//             return DraggableScrollableSheet(
+//               initialChildSize: 0.85,
+//               minChildSize: 0.25,
+//               maxChildSize: 0.9,
+//               expand: false,
+//               builder: (context, scrollController) {
+//                 return SingleChildScrollView(
+//                   controller: scrollController,
+//                   child: Container(
+//                     padding: const EdgeInsets.all(16.0),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Image.network(
+//                           report.image.url,
+//                           fit: BoxFit.contain,
+//                           loadingBuilder: (BuildContext context, Widget child,
+//                               ImageChunkEvent? loadingProgress) {
+//                             if (loadingProgress == null) return child;
+//                             return Center(
+//                               child: CircularProgressIndicator(
+//                                 value: loadingProgress.expectedTotalBytes != null
+//                                     ? loadingProgress.cumulativeBytesLoaded /
+//                                         loadingProgress.expectedTotalBytes!
+//                                     : null,
+//                               ),
+//                             );
+//                           },
+//                         ),
+//                         const SizedBox(height: 16),
+//                         const Text(
+//                           'Description: ',
+//                           style: TextStyle(
+//                               fontSize: 16.0, fontWeight: FontWeight.bold),
+//                         ),
+//                         Text(
+//                           report.description,
+//                           style: const TextStyle(fontSize: 16.0),
+//                         ),
+//                         const SizedBox(height: 8),
+//                         const Text(
+//                           'Category: ',
+//                           style: TextStyle(
+//                               fontSize: 16.0, fontWeight: FontWeight.bold),
+//                         ),
+//                         Text(
+//                           report.category,
+//                           style: const TextStyle(fontSize: 16.0),
+//                         ),
+//                         const SizedBox(height: 8),
+//                         const Text(
+//                           'Authority: ',
+//                           style: TextStyle(
+//                               fontSize: 16.0, fontWeight: FontWeight.bold),
+//                         ),
+//                         Text(
+//                           report.authority,
+//                           style: const TextStyle(fontSize: 16.0),
+//                         ),
+//                         const SizedBox(height: 8),
+//                         const Text(
+//                           'Created At: ',
+//                           style: TextStyle(
+//                               fontSize: 16.0, fontWeight: FontWeight.bold),
+//                         ),
+//                         Text(
+//                           DateFormat('dd-MM-yyyy').format(
+//                               DateTime.fromMillisecondsSinceEpoch(
+//                                   report.createdAt * 1000)),
+//                           style: const TextStyle(fontSize: 16.0),
+//                         ),
+//                         const SizedBox(height: 8),
+//                         const Text(
+//                           'Status: ',
+//                           style: TextStyle(
+//                               fontSize: 16.0, fontWeight: FontWeight.bold),
+//                         ),
+//                         Text(
+//                           report.resolved ? 'Resolved' : 'In progress',
+//                           style: const TextStyle(fontSize: 16.0),
+//                         ),
+//                         const SizedBox(height: 16),
+//                         Row(
+//                           children: [
+//                             IconButton(
+//                               icon: const Icon(Icons.thumb_up),
+//                               onPressed: () async {
+//                                 await viewModel.upvoteReport(report.id);
+//                                 if (viewModel.isUpvoteSuccessful) {
+//                                   TopSnackBarSuccess.show(context, "Upvote successful!");
+//                                   setState(() {});
+//                                 } else {
+//                                   TopSnackBarError.show(context, 'Already upvoted!');
+//                                 }
+//                               },
+//                             ),
+//                             Text(
+//                               '${report.upvoteCount ?? 0}', 
+//                               style: const TextStyle(fontSize: 16.0),
+//                             ),
+//                           ],
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 );
+//               },
+//             );
+//           },
+//         );
+//       },
+//     );
+//   }
+
+//   @override
+//   void dispose() {
+//     _rebuildStream.close();
+//     super.dispose();
+//   }
+
+//  @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: ChangeNotifierProvider(
+//         create: (context) => ReportsViewModel(
+//           Provider.of<ReportRepository>(context, listen: false),
+//           Provider.of<AuthProvider>(context, listen: false),
+//         )..fetchReports(),
+//         child: Consumer<ReportsViewModel>(
+//           builder: (context, viewModel, child) {
+//             if (viewModel.isLoading) {
+//               return const Center(child: CircularProgressIndicator());
+//             } else if (viewModel.errorMessage.isNotEmpty && viewModel.reports.isEmpty) {
+//               return Center(child: Text('Error: ${viewModel.errorMessage}'));
+//             } else {
+//               return Stack(
+//                 children: [
+//                   FlutterMap(
+//                     options: MapOptions(
+//                       initialCenter: const LatLng(54.637, -6.671),
+//                       initialZoom: _currentZoom,
+//                       onPositionChanged: (position, hasGesture) {
+//                         setState(() {
+//                           _currentZoom = position.zoom;
+//                         });
+//                         viewModel.calculateClusters(_currentZoom);
+//                       },
+//                     ),
+//                     children: [
+//                       TileLayer(
+//                         urlTemplate:
+//                             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+//                         userAgentPackageName: 'com.example.app',
+//                       ),
+//                       if (viewModel.showHeatmap &&
+//                           viewModel.heatmapData.isNotEmpty)
+//                         HeatMapLayer(
+//                           heatMapDataSource: InMemoryHeatMapDataSource(
+//                               data: viewModel.heatmapData),
+//                           heatMapOptions: HeatMapOptions(
+//                             gradient: HeatMapOptions.defaultGradient,
+//                             minOpacity: 0.1,
+//                           ),
+//                           reset: _rebuildStream.stream,
+//                         ),
+//                       if (_currentZoom < 12)
+//                         MarkerLayer(
+//                           markers: viewModel.clusters.map((cluster) {
+//                             return Marker(
+//                               width: 40.0,
+//                               height: 40.0,
+//                               point: cluster.center,
+//                               child: GestureDetector(
+//                                 child: Container(
+//                                   decoration: BoxDecoration(
+//                                     color: Colors.blue,
+//                                     borderRadius: BorderRadius.circular(20.0),
+//                                   ),
+//                                   child: Center(
+//                                     child: Text(
+//                                       '${cluster.count}',
+//                                       style:
+//                                           const TextStyle(color: Colors.white),
+//                                     ),
+//                                   ),
+//                                 ),
+//                               ),
+//                             );
+//                           }).toList(),
+//                         )
+//                       else
+//                         MarkerLayer(
+//                           markers: viewModel.filteredReports.map((report) {
+//                             final lat = report.geolocation.geometry.coordinates[0];
+//                             final lon = report.geolocation.geometry.coordinates[1];
+//                             return Marker(
+//                               width: 40.0,
+//                               height: 40.0,
+//                               point: LatLng(lat, lon),
+//                               child: GestureDetector(
+//                                 onTap: () => _onMarkerTapped(context, Marker(
+//                                   point: LatLng(lat, lon),
+//                                   child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
+//                                 )),
+//                                 child: const Icon(Icons.location_on,
+//                                     color: Colors.red, size: 40.0),
+//                               ),
+//                             );
+//                           }).toList(),
+//                         ),
+//                     ],
+//                   ),
+//                   Positioned(
+//                     bottom: 16.0,
+//                     right: 16.0,
+//                     child: Column(
+//                       children: [
+//                         FloatingActionButton(
+//                           heroTag: "filterCategoryButton",
+//                           onPressed: () {},
+//                           child: PopupMenuButton<String>(
+//                             icon: const Icon(Icons.filter_list),
+//                             onSelected: (String value) {
+//                               viewModel.setFilterCategory(value);
+//                             },
+//                             itemBuilder: (BuildContext context) {
+//                               return [
+//                                 const PopupMenuItem<String>(
+//                                   value: '',
+//                                   child: Text('All Categories'),
+//                                 ),
+//                                 ...viewModel.categories.map((category) {
+//                                   return PopupMenuItem<String>(
+//                                     value: category,
+//                                     child: Text(category),
+//                                   );
+//                                 }).toList(),
+//                               ];
+//                             },
+//                           ),
+//                         ),
+//                         const SizedBox(height: 8.0),
+//                         FloatingActionButton(
+//                           heroTag: "filterButton",
+//                           onPressed: () {
+//                             viewModel.toggleHeatmap();
+//                           },
+//                           child: Icon(viewModel.showHeatmap
+//                               ? Icons.layers_clear
+//                               : Icons.layers),
+//                         ),
+//                         const SizedBox(height: 8.0),
+//                         FloatingActionButton(
+//                           heroTag: "addButton",
+//                           onPressed: () {
+//                             showModalBottomSheet(
+//                               context: context,
+//                               isScrollControlled: true,
+//                               builder: (context) {
+//                                 return ChangeNotifierProvider.value(
+//                                   value: context.read<ReportsViewModel>(),
+//                                   child: const AddReportForm(),
+//                                 );
+//                               },
+//                             );
+//                           },
+//                           child: const Icon(Icons.add),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ],
+//               );
+//             }
+//           },
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class AddReportForm extends StatelessWidget {
   const AddReportForm({super.key});
