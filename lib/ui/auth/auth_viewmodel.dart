@@ -48,6 +48,12 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  bool _isValidEmail(String email) {
+    return RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(email);
+  }
+
   void _setLoadingState(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
