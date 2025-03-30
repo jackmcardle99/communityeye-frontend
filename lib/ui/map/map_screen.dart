@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:communityeye_frontend/data/providers/auth_provider.dart';
 import 'package:communityeye_frontend/data/repositories/report_repository.dart';
-import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
+import 'package:communityeye_frontend/ui/map/map_viewmodel.dart';
 import 'package:communityeye_frontend/ui/widgets/error_message.dart';
 import 'package:communityeye_frontend/ui/widgets/success_message.dart';
 import 'package:flutter/material.dart';
