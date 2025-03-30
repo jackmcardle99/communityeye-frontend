@@ -106,7 +106,7 @@ class AuthService {
 
       LoggerService.logger.i('API Call: DELETE ${baseUrl}delete_account - Status Code: ${response.statusCode} ${response.reasonPhrase} ${response.body}');
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 204) {
       } else {
         throw Exception(
             'Failed to delete account with status: ${response.statusCode}');
