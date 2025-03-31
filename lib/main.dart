@@ -6,7 +6,7 @@ import 'package:communityeye_frontend/data/repositories/report_repository.dart';
 import 'package:communityeye_frontend/data/repositories/user_repository.dart'; // Import UserRepository
 import 'package:communityeye_frontend/data/services/auth_service.dart';
 import 'package:communityeye_frontend/data/services/report_service.dart';
-import 'package:communityeye_frontend/ui/map/reports_viewmodel.dart';
+import 'package:communityeye_frontend/ui/map/map_viewmodel.dart';
 import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
 import 'package:communityeye_frontend/ui/profile/profile_viewmodel.dart'; // Import ProfileViewModel
 import 'package:communityeye_frontend/ui/reports/myreport_viewmodel.dart';
