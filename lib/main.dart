@@ -71,6 +71,7 @@ class MyApp extends StatelessWidget {
         Provider(
           create: (context) => UserRepository(
             Provider.of<AuthProvider>(context, listen: false),
+            Provider.of<AuthService>(context, listen: false)
           ),
         ),
         // Provide the ProfileViewModel to the app
