@@ -95,6 +95,30 @@ class AuthService {
     }
   }
 
+  Future<bool> updateUser(int userId, Map<String, dynamic> updatedData, String token) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${baseUrl}users/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': token,
+        },
+        body: jsonEncode(updatedData),
+      );
+
+      LoggerService.logger.i('API Call: PUT ${baseUrl}users/$userId - Status Code: ${response.statusCode} ${response.reasonPhrase} ${response.body}');
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Update failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      LoggerService.logger.e('Error updating user: $e');
+      return false;
+    }
+  }
+
   Future<void> deleteUserAccount(String token) async {
     try {
       final response =

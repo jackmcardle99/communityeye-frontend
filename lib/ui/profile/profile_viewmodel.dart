@@ -31,6 +31,31 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> updateUserProfile(String firstName, String lastName) async {
+    if (_user == null) return false;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final updatedData = {
+      'firstName': firstName,
+      'lastName': lastName,
+    };
+
+    bool success = await _userRepository.updateUserProfile(updatedData);
+
+    if (success) {
+      _user = _user!.copyWith(firstName: firstName, lastName: lastName);
+    } else {
+      _errorMessage = 'Failed to update profile';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
   Future<void> logout() async {
     await _authProvider.logout();
   }

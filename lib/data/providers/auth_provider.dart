@@ -139,17 +139,17 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<User?> fetchUser(int userId) async {
-    try {
-      String? token = await getToken();
-      if (token != null) {
-        return await _authService.fetchUser(userId, token);
-      }
-      return null;
-    } catch (e) {
-      LoggerService.logger
-          .e('Error fetching user data for User ID: $userId - Error: $e');
-      return null;
-    }
-  }
+  // Future<User?> fetchUser(int userId) async {
+  //   try {
+  //     String? token = await getToken();
+  //     if (token != null) {
+  //       return await _authService.fetchUser(userId, token);
+  //     }
+  //     return null;
+  //   } catch (e) {
+  //     LoggerService.logger
+  //         .e('Error fetching user data for User ID: $userId - Error: $e');
+  //     return null;
+  //   }
+  // }
 }
