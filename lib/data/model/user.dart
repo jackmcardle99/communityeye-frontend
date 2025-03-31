@@ -42,11 +42,17 @@ class User {
     String? firstName,
     String? lastName,
     String? email,
+    String? mobileNumber,
+    String? city,
+    String? password
   }) {
     return User(
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
+      mobileNumber: mobileNumber ?? this.mobileNumber,
+      city: city ?? this.city,
+      password: password ?? this.password
     );
   }
 }

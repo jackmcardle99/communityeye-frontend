@@ -31,30 +31,70 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> updateUserProfile(String firstName, String lastName) async {
-    if (_user == null) return false;
+  Future<bool> updateUserProfile(
+  String? firstName,
+  String? lastName,
+  String? emailAddress,
+  String? mobileNumber,
+  String? city,
+  String? password,
+) async {
+  if (_user == null) return false;
 
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  _isLoading = true;
+  _errorMessage = null;
+  notifyListeners();
 
-    final updatedData = {
-      'firstName': firstName,
-      'lastName': lastName,
-    };
+  // Create a map to store only the updated fields
+  final Map<String, dynamic> updatedData = {};
 
-    bool success = await _userRepository.updateUserProfile(updatedData);
+  // Add the updated fields to the map if they are not null and different from current values
+  if (firstName != null && firstName != _user?.firstName) {
+    updatedData['first_name'] = firstName;
+  }
+  if (lastName != null && lastName != _user?.lastName) {
+    updatedData['last_name'] = lastName;
+  }
+  if (emailAddress != null && emailAddress != _user?.email) {
+    updatedData['email_address'] = emailAddress;
+  }
+  if (mobileNumber != null && mobileNumber != _user?.mobileNumber) {
+    updatedData['mobile_number'] = mobileNumber;
+  }
+  if (city != null && city != _user?.city) {
+    updatedData['city'] = city;
+  }
+  if (password != null && password.isNotEmpty) {
+    updatedData['password'] = password;
+  }
 
-    if (success) {
-      _user = _user!.copyWith(firstName: firstName, lastName: lastName);
-    } else {
-      _errorMessage = 'Failed to update profile';
-    }
-
+  if (updatedData.isEmpty) {
+    // If no fields were updated, return false to indicate no changes
     _isLoading = false;
     notifyListeners();
-    return success;
+    return false;
   }
+
+  bool success = await _userRepository.updateUserProfile(updatedData);
+
+  if (success) {
+    // Update the user data in the ViewModel if the update is successful
+    _user = _user!.copyWith(
+      firstName: firstName ?? _user?.firstName,
+      lastName: lastName ?? _user?.lastName,
+      email: emailAddress ?? _user?.email,
+      mobileNumber: mobileNumber ?? _user?.mobileNumber,
+      city: city ?? _user?.city,
+    );
+  } else {
+    _errorMessage = 'Failed to update profile';
+  }
+
+  _isLoading = false;
+  notifyListeners();
+  return success;
+}
+
 
   Future<void> logout() async {
     await _authProvider.logout();

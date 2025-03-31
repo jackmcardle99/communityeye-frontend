@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/user.dart';
 import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:communityeye_frontend/ui/widgets/error_message.dart';
+import 'package:communityeye_frontend/ui/widgets/success_message.dart';
+
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -17,13 +20,11 @@ class RegisterScreen extends StatelessWidget {
           return Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.only(
-                // top: constraints.maxHeight * 0.1, 
                 bottom: MediaQuery.of(context).viewInsets.bottom + 20,
               ),
               child: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo(),
                   SizedBox(height: 32),
                   _FormContent(),
                 ],
@@ -180,14 +181,19 @@ class __FormContentState extends State<_FormContent> {
                         await context.read<AuthViewModel>().register(user);
 
                         if (viewModel.errorMessage == null) {
+                          TopSnackBarSuccess.show(
+                            context, 
+                            'Registration successful!'
+                          );  // Show success message
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (context) => const HomeScreen()),
                           );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(viewModel.errorMessage!)),
-                          );
+                          TopSnackBarError.show(
+                            context, 
+                            viewModel.errorMessage!
+                          );  // Show error message
                         }
                       }
                     },

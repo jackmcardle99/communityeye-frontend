@@ -4,6 +4,8 @@ import 'package:communityeye_frontend/ui/widgets/button_danger.dart'; // Import 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:communityeye_frontend/ui/profile/profile_viewmodel.dart';
+import 'package:communityeye_frontend/ui/widgets/error_message.dart';
+import 'package:communityeye_frontend/ui/widgets/success_message.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,6 +21,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
+  final mobileNumberController = TextEditingController();
+  final cityController = TextEditingController();
   final passwordController = TextEditingController();
 
   @override
@@ -56,6 +60,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     firstNameController.text = user.firstName!;
     lastNameController.text = user.lastName!;
     emailController.text = user.email!;
+    mobileNumberController.text = user.mobileNumber ?? '';
+    cityController.text = user.city ?? '';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
@@ -91,6 +97,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 _gap(),
                 _buildTextField(
+                  controller: mobileNumberController,
+                  label: 'Mobile Number',
+                  hint: 'Enter your mobile number',
+                  icon: Icons.phone_outlined,
+                  enabled: _isEditing,
+                ),
+                _gap(),
+                _buildTextField(
+                  controller: cityController,
+                  label: 'City',
+                  hint: 'Enter your city',
+                  icon: Icons.location_city_outlined,
+                  enabled: _isEditing,
+                ),
+                _gap(),
+                _buildTextField(
                   controller: passwordController,
                   label: 'Enter a new password',
                   hint: 'Enter a new password',
@@ -101,19 +123,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
                 AppButton(
                   text: _isEditing ? 'Save' : 'Edit Profile',
-                  onPressed: () {
-                    setState(() => _isEditing = !_isEditing);
-                    if (!_isEditing) {
+                  onPressed: () async {
+                    if (_isEditing) {
+                      // Save profile changes when in edit mode
                       if (_formKey.currentState?.validate() ?? false) {
-                        // context.read<ProfileViewModel>().saveProfileChanges(
-                        //   user.copyWith(
-                        //     firstName: firstNameController.text,
-                        //     lastName: lastNameController.text,
-                        //     email: emailController.text,
-                        //     password: passwordController.text,
-                        //   ),
-                        // );
+                        bool success = await profileViewModel.updateUserProfile(
+                          firstNameController.text,
+                          lastNameController.text,
+                          emailController.text,
+                          mobileNumberController.text,
+                          cityController.text,
+                          passwordController.text,
+                        );
+                        if (success) {
+                          setState(() {
+                            _isEditing = false; // Disable editing after save
+                          });
+                          // Show success snackbar
+                          TopSnackBarSuccess.show(context, 'Profile updated successfully');
+                        } else {
+                          // Show error snackbar
+                          TopSnackBarError.show(context, 'Failed to update profile');
+                        }
                       }
+                    } else {
+                      setState(() {
+                        _isEditing = true; // Enable editing
+                      });
                     }
                   },
                 ),
@@ -121,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 AppButton(
                   text: 'Logout',
                   onPressed: () async {
-                    await context.read<ProfileViewModel>().logout();
+                    await profileViewModel.logout();
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => const AuthScreen()),
@@ -132,7 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 8),
                 ButtonDanger(
                   onPressed: () async {
-                    await context.read<ProfileViewModel>().deleteUserAccount();
+                    await profileViewModel.deleteUserAccount();
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => const AuthScreen()),
