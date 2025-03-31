@@ -37,4 +37,16 @@ class User {
       'password': password,
     };
   }
+
+  User copyWith({
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) {
+    return User(
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+    );
+  }
 }
