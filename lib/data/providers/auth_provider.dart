@@ -1,3 +1,14 @@
+/*
+File: auth_provider.dart
+Author: Jack McArdle
+
+This file is part of CommunityEye.
+
+Email: mcardle-j9@ulster.ac.uk
+B-No: B00733578
+*/
+
+
 import 'package:communityeye_frontend/data/services/auth_service.dart';
 import 'package:communityeye_frontend/data/model/user.dart';
 import 'package:communityeye_frontend/data/services/logger_service.dart';

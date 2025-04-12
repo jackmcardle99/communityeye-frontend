@@ -1,3 +1,13 @@
+/*
+File: logger_service.dart
+Author: Jack McArdle
+
+This file is part of CommunityEye.
+
+Email: mcardle-j9@ulster.ac.uk
+B-No: B00733578
+*/
+
 import 'dart:io';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';

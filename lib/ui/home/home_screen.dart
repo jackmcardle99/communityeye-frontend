@@ -1,3 +1,13 @@
+/*
+File: home_screen.dart
+Author: Jack McArdle
+
+This file is part of CommunityEye.
+
+Email: mcardle-j9@ulster.ac.uk
+B-No: B00733578
+*/
+
 import 'package:communityeye_frontend/ui/map/map_screen.dart';
 import 'package:communityeye_frontend/ui/profile/profile_screen.dart';
 import 'package:communityeye_frontend/ui/reports/myreports_screen.dart';

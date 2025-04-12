@@ -1,3 +1,13 @@
+/*
+File: auth_service.dart
+Author: Jack McArdle
+
+This file is part of CommunityEye.
+
+Email: mcardle-j9@ulster.ac.uk
+B-No: B00733578
+*/
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:communityeye_frontend/data/model/user.dart';

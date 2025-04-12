@@ -1,3 +1,13 @@
+/*
+File: profile_viewmodel.dart
+Author: Jack McArdle
+
+This file is part of CommunityEye.
+
+Email: mcardle-j9@ulster.ac.uk
+B-No: B00733578
+*/
+
 import 'package:communityeye_frontend/data/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/data/model/user.dart';

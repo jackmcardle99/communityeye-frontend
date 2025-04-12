@@ -1,3 +1,13 @@
+/*
+File: report_service.dart
+Author: Jack McArdle
+
+This file is part of CommunityEye.
+
+Email: mcardle-j9@ulster.ac.uk
+B-No: B00733578
+*/
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:communityeye_frontend/data/model/report.dart';
