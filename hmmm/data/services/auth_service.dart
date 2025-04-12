@@ -6,6 +6,9 @@ import 'package:communityeye_frontend/data/services/logger_service.dart';
 class AuthService {
   final String baseUrl = 'http://192.168.0.143:5001/api/v1/';
 
+  
+  // final String baseUrl = 'http://172.17.95.91:5001/api/v1/';
+
   Future<String> register(User user) async {
     try {
       final response =
