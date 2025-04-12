@@ -158,14 +158,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.10.1"
-  code_uml:
-    dependency: "direct main"
-    description:
-      name: code_uml
-      sha256: "68879f35284a354ad4d69577197abc128140f04b6e57118b9c18e8e28c0c6358"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   collection:
     dependency: transitive
     description:

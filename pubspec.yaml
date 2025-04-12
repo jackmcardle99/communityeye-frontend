@@ -52,7 +52,6 @@ dependencies:
   path_provider: ^2.1.5
   motion_tab_bar: ^2.0.4
   flutter_svg: ^2.0.17
-  code_uml: ^1.0.2
 
 dev_dependencies:
   flutter_test:
