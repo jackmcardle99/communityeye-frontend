@@ -184,7 +184,7 @@ class __FormContentState extends State<_FormContent> {
                           TopSnackBarSuccess.show(
                             context, 
                             'Registration successful!'
-                          );  // Show success message
+                          );
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -193,7 +193,7 @@ class __FormContentState extends State<_FormContent> {
                           TopSnackBarError.show(
                             context, 
                             viewModel.errorMessage!
-                          );  // Show error message
+                          );  
                         }
                       }
                     },

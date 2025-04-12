@@ -12,8 +12,8 @@ class ButtonDanger extends StatelessWidget {
       width: 200,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red, // Red background
-          foregroundColor: Colors.white, // White text
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),

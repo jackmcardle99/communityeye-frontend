@@ -26,7 +26,6 @@ class ReportsViewModel extends ChangeNotifier {
   String _errorMessage = '';
   String? _selectedFilterCategory;
 
-  // Form state
   String? _description;
   String? _selectedCategory;
   File? _image;

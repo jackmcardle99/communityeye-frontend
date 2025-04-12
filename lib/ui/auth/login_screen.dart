@@ -54,7 +54,6 @@ class __FormContentState extends State<_FormContent> {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<AuthViewModel>(context);
 
-    // Listen for authentication state changes
     if (viewModel.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(

@@ -1,6 +1,6 @@
 import 'package:communityeye_frontend/ui/auth/auth_screen.dart';
-import 'package:communityeye_frontend/ui/widgets/button.dart'; // Import the AppButton widget
-import 'package:communityeye_frontend/ui/widgets/button_danger.dart'; // Import the ButtonDanger widget
+import 'package:communityeye_frontend/ui/widgets/button.dart';
+import 'package:communityeye_frontend/ui/widgets/button_danger.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:communityeye_frontend/ui/profile/profile_viewmodel.dart';
@@ -124,8 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 AppButton(
                   text: _isEditing ? 'Save' : 'Edit Profile',
                   onPressed: () async {
-                    if (_isEditing) {
-                      // Save profile changes when in edit mode
+                    if (_isEditing) {                     
                       if (_formKey.currentState?.validate() ?? false) {
                         bool success = await profileViewModel.updateUserProfile(
                           firstNameController.text,
@@ -137,18 +136,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                         if (success) {
                           setState(() {
-                            _isEditing = false; // Disable editing after save
+                            _isEditing = false;
                           });
-                          // Show success snackbar
                           TopSnackBarSuccess.show(context, 'Profile updated successfully');
                         } else {
-                          // Show error snackbar
                           TopSnackBarError.show(context, 'Failed to update profile');
                         }
                       }
                     } else {
                       setState(() {
-                        _isEditing = true; // Enable editing
+                        _isEditing = true;
                       });
                     }
                   },

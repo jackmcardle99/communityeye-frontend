@@ -13,10 +13,17 @@ class AuthViewModel extends ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
 
   AuthViewModel(AuthProvider authProvider) : _authProvider = authProvider {
+    _authProvider.addListener(_onAuthChanged);
     _checkAuthentication();
   }
 
   Future<void> _checkAuthentication() async {
+    _isAuthenticated = _authProvider.isAuthenticated;
+    notifyListeners();
+  }
+
+  // need this to listen for state changes to auth when logging otu
+  void _onAuthChanged() {
     _isAuthenticated = _authProvider.isAuthenticated;
     notifyListeners();
   }

@@ -45,10 +45,8 @@ class ProfileViewModel extends ChangeNotifier {
   _errorMessage = null;
   notifyListeners();
 
-  // Create a map to store only the updated fields
   final Map<String, dynamic> updatedData = {};
 
-  // Add the updated fields to the map if they are not null and different from current values
   if (firstName != null && firstName != _user?.firstName) {
     updatedData['first_name'] = firstName;
   }
@@ -69,7 +67,6 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   if (updatedData.isEmpty) {
-    // If no fields were updated, return false to indicate no changes
     _isLoading = false;
     notifyListeners();
     return false;
@@ -78,7 +75,6 @@ class ProfileViewModel extends ChangeNotifier {
   bool success = await _userRepository.updateUserProfile(updatedData);
 
   if (success) {
-    // Update the user data in the ViewModel if the update is successful
     _user = _user!.copyWith(
       firstName: firstName ?? _user?.firstName,
       lastName: lastName ?? _user?.lastName,
@@ -94,7 +90,6 @@ class ProfileViewModel extends ChangeNotifier {
   notifyListeners();
   return success;
 }
-
 
   Future<void> logout() async {
     await _authProvider.logout();
