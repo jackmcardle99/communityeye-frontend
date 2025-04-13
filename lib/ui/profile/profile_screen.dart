@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:communityeye_frontend/ui/profile/profile_viewmodel.dart';
 import 'package:communityeye_frontend/ui/widgets/error_message.dart';
 import 'package:communityeye_frontend/ui/widgets/success_message.dart';
+import 'package:flutter/services.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -89,6 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   hint: 'Enter your first name',
                   icon: Icons.person_outline,
                   enabled: _isEditing,
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]"))],
                 ),
                 _gap(),
                 _buildTextField(
@@ -97,6 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   hint: 'Enter your last name',
                   icon: Icons.person_outline,
                   enabled: _isEditing,
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]"))],
                 ),
                 _gap(),
                 _buildTextField(
@@ -105,6 +108,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   hint: 'Enter your email',
                   icon: Icons.email_outlined,
                   enabled: _isEditing,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an email';
+                    }
+                    if (!profileViewModel.isValidEmail(value)) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
                 ),
                 _gap(),
                 _buildTextField(
@@ -113,6 +126,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   hint: 'Enter your mobile number',
                   icon: Icons.phone_outlined,
                   enabled: _isEditing,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
                 _gap(),
                 _buildTextField(
@@ -121,6 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   hint: 'Enter your city',
                   icon: Icons.location_city_outlined,
                   enabled: _isEditing,
+                   inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]"))],
                 ),
                 _gap(),
                 _buildTextField(
@@ -130,6 +146,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.lock_outline_rounded,
                   obscureText: true,
                   enabled: _isEditing,
+                  validator: (value) {
+                      if (value != null && value.isNotEmpty && value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                  },
                 ),
                 const SizedBox(height: 20),
                 AppButton(
@@ -143,7 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           emailController.text,
                           mobileNumberController.text,
                           cityController.text,
-                          passwordController.text,
+                          passwordController.text.isNotEmpty ? passwordController.text : null,
                         );
                         if (success) {
                           setState(() {
@@ -202,17 +224,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     bool obscureText = false,
     bool enabled = true,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       enabled: enabled,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         prefixIcon: Icon(icon),
         border: const OutlineInputBorder(),
       ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          if (label != 'Enter a new password') {
+            return label;
+          }
+        }
+        if (label == 'Email' && !context.read<ProfileViewModel>().isValidEmail(value!)) {
+          return 'Please enter a valid email';
+        }
+        if (label == 'Enter a new password' && value != null && value.isNotEmpty && value.length < 6) {
+          return 'Password must be at least 6 characters';
+        }
+        return validator?.call(value);
+      },
     );
   }
 }

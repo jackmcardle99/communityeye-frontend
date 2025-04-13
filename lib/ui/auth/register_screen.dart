@@ -16,7 +16,7 @@ import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:communityeye_frontend/ui/widgets/error_message.dart';
 import 'package:communityeye_frontend/ui/widgets/success_message.dart';
-
+import 'package:flutter/services.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -83,9 +83,8 @@ class __FormContentState extends State<_FormContent> {
               label: 'First Name',
               hint: 'Enter your first name',
               icon: Icons.person,
-              validator: (value) => value == null || value.isEmpty
-                  ? 'Please enter your first name'
-                  : null,
+              keyboardType: TextInputType.name,
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]"))],
             ),
             _gap(),
             _buildTextField(
@@ -93,9 +92,8 @@ class __FormContentState extends State<_FormContent> {
               label: 'Last Name',
               hint: 'Enter your last name',
               icon: Icons.person,
-              validator: (value) => value == null || value.isEmpty
-                  ? 'Please enter your last name'
-                  : null,
+              keyboardType: TextInputType.name,
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]"))],
             ),
             _gap(),
             _buildTextField(
@@ -103,9 +101,7 @@ class __FormContentState extends State<_FormContent> {
               label: 'Email',
               hint: 'Enter your email',
               icon: Icons.email_outlined,
-              validator: (value) => value == null || value.isEmpty
-                  ? 'Please enter your email'
-                  : null,
+              keyboardType: TextInputType.emailAddress,
             ),
             _gap(),
             _buildTextField(
@@ -113,9 +109,8 @@ class __FormContentState extends State<_FormContent> {
               label: 'Mobile Number',
               hint: 'Enter your mobile number',
               icon: Icons.phone,
-              validator: (value) => value == null || value.isEmpty
-                  ? 'Please enter your mobile number'
-                  : null,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
             _gap(),
             _buildTextField(
@@ -123,9 +118,8 @@ class __FormContentState extends State<_FormContent> {
               label: 'City',
               hint: 'Enter your city',
               icon: Icons.location_city,
-              validator: (value) => value == null || value.isEmpty
-                  ? 'Please enter your city'
-                  : null,
+              keyboardType: TextInputType.name,
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]"))],
             ),
             _gap(),
             _buildTextField(
@@ -223,12 +217,15 @@ class __FormContentState extends State<_FormContent> {
     required IconData icon,
     Widget? suffixIcon,
     bool obscureText = false,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
-      validator: validator,
       obscureText: obscureText,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -236,6 +233,16 @@ class __FormContentState extends State<_FormContent> {
         border: const OutlineInputBorder(),
         suffixIcon: suffixIcon,
       ),
+       validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your $label';
+        }
+        if (label == 'Email' && !context.read<AuthViewModel>().isValidEmail(value)) {
+          return 'Please enter a valid email';
+        }
+        return validator?.call(value);
+
+      },
     );
   }
 }

@@ -14,6 +14,7 @@ import 'package:communityeye_frontend/ui/widgets/logo.dart';
 import 'package:flutter/material.dart';
 import 'package:communityeye_frontend/ui/auth/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -85,8 +86,7 @@ class __FormContentState extends State<_FormContent> {
               label: 'Email',
               hint: 'Enter your email',
               icon: Icons.email_outlined,
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'Please enter your email' : null,
+              keyboardType: TextInputType.emailAddress,
             ),
             _gap(),
             _buildTextField(
@@ -147,12 +147,13 @@ class __FormContentState extends State<_FormContent> {
     required IconData icon,
     Widget? suffixIcon,
     bool obscureText = false,
+    TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
-      validator: validator,
       obscureText: obscureText,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -160,6 +161,15 @@ class __FormContentState extends State<_FormContent> {
         border: const OutlineInputBorder(),
         suffixIcon: suffixIcon,
       ),
+       validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your $label';
+        }
+        if (label == 'Email' && !context.read<AuthViewModel>().isValidEmail(value)) {
+          return 'Please enter a valid email';
+        }
+        return validator?.call(value);
+      },
     );
   }
 }
